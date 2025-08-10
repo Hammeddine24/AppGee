@@ -9,7 +9,7 @@ export default function HomePage() {
   const recentDonations = donations.slice(0, 5);
   const weeklyDonations = donations.slice(5, 10);
   const plugin = React.useRef(
-    Autoplay({ delay: 2000, stopOnInteraction: true })
+    Autoplay({ delay: 3000, stopOnInteraction: true })
   )
 
   return (
@@ -71,7 +71,7 @@ export default function HomePage() {
       {/* Fil d'actualité */}
       <section>
         <h2 className="text-3xl font-bold mb-6">Fil d'actualité</h2>
-        <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+        <div className="flex flex-col gap-6">
           {donations.map((donation) => (
             <DonationCard key={donation.id} donation={donation} />
           ))}
