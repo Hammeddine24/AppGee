@@ -19,7 +19,7 @@ export const donations: Donation[] = [
     title: 'Collection de vinyles',
     description: 'Rock classique des années 70-80. Une dizaine d\'albums.',
     category: 'Musique',
-    imageUrl: 'https://images.unsplash.com/photo-1548802272-68c818981e58?q=80&w=600',
+    imageUrl: 'https://images.unsplash.com/photo-1567016376408-0226e4d0c1ea?q=80&w=600',
     imageHint: 'vinyl records',
     user: {
       name: 'Bob Garcia',
@@ -32,7 +32,7 @@ export const donations: Donation[] = [
     title: 'Vélo de ville hollandais',
     description: 'Nécessite une petite révision (pneus dégonflés).',
     category: 'Sport',
-    imageUrl: 'https://images.unsplash.com/photo-1559348349-36dfc68b160f?q=80&w=600',
+    imageUrl: 'https://images.unsplash.com/photo-1567016376408-0226e4d0c1ea?q=80&w=600',
     imageHint: 'city bike',
     user: {
       name: 'Claire Dubois',
@@ -45,7 +45,7 @@ export const donations: Donation[] = [
     title: 'Lampe de bureau design',
     description: 'Style industriel, fonctionne parfaitement.',
     category: 'Décoration',
-    imageUrl: 'https://images.unsplash.com/photo-1507436202237-a7226005f338?q=80&w=600',
+    imageUrl: 'https://images.unsplash.com/photo-1567016376408-0226e4d0c1ea?q=80&w=600',
     imageHint: 'desk lamp',
     user: {
       name: 'David Petit',
@@ -58,7 +58,7 @@ export const donations: Donation[] = [
     title: 'Plantes vertes d\'intérieur',
     description: 'Lot de 3 plantes (Ficus, Monstera, Pothos).',
     category: 'Jardinage',
-    imageUrl: 'https://images.unsplash.com/photo-1512428209939-2b947e583e84?q=80&w=600',
+    imageUrl: 'https://images.unsplash.com/photo-1567016376408-0226e4d0c1ea?q=80&w=600',
     imageHint: 'house plants',
     user: {
       name: 'Eve Bernard',
@@ -71,7 +71,7 @@ export const donations: Donation[] = [
     title: 'Miroir ancien avec cadre doré',
     description: 'Très grand, parfait pour une entrée ou une chambre.',
     category: 'Décoration',
-    imageUrl: 'https://images.unsplash.com/photo-1559094598-654e5254a4a5?q=80&w=600',
+    imageUrl: 'https://images.unsplash.com/photo-1567016376408-0226e4d0c1ea?q=80&w=600',
     imageHint: 'antique mirror',
     user: {
       name: 'Frank Moreau',
@@ -84,7 +84,7 @@ export const donations: Donation[] = [
     title: 'Service à vaisselle complet',
     description: 'Pour 6 personnes, style rustique, très peu servi.',
     category: 'Cuisine',
-    imageUrl: 'https://images.unsplash.com/photo-1556909114-f6e7ad7d3c93?q=80&w=600',
+    imageUrl: 'https://images.unsplash.com/photo-1567016376408-0226e4d0c1ea?q=80&w=600',
     imageHint: 'dinnerware set',
     user: {
       name: 'Grace Lambert',
@@ -97,7 +97,7 @@ export const donations: Donation[] = [
     title: 'Guitare acoustique',
     description: 'Idéale pour débutants, avec sa housse de transport.',
     category: 'Musique',
-    imageUrl: 'https://images.unsplash.com/photo-1510915361894-db8b60106945?q=80&w=600',
+    imageUrl: 'https://images.unsplash.com/photo-1567016376408-0226e4d0c1ea?q=80&w=600',
     imageHint: 'acoustic guitar',
     user: {
       name: 'Heidi Roux',
@@ -110,7 +110,7 @@ export const donations: Donation[] = [
     title: 'Machine à café à grains',
     description: 'Modèle automatique, a besoin d\'un détartrage.',
     category: 'Cuisine',
-    imageUrl: 'https://images.unsplash.com/photo-1563868045-8438127537b2?q=80&w=600',
+    imageUrl: 'https://images.unsplash.com/photo-1567016376408-0226e4d0c1ea?q=80&w=600',
     imageHint: 'coffee machine',
     user: {
       name: 'Ivan Lefevre',
@@ -123,7 +123,7 @@ export const donations: Donation[] = [
     title: 'Tapis berbère',
     description: '150x200cm, en laine, à nettoyer.',
     category: 'Décoration',
-    imageUrl: 'https://images.unsplash.com/photo-1617304523733-b16bf148a4c8?q=80&w=600',
+    imageUrl: 'https://images.unsplash.com/photo-1567016376408-0226e4d0c1ea?q=80&w=600',
     imageHint: 'berber rug',
     user: {
       name: 'Judy Marchand',
