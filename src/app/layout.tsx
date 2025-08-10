@@ -3,7 +3,7 @@ import { Toaster } from "@/components/ui/toaster";
 import './globals.css';
 
 export const metadata: Metadata = {
-  title: 'Re-Life Hub',
+  title: 'Gee',
   description: 'Donnez une seconde vie à vos objets',
 };
 
