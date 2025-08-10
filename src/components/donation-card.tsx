@@ -17,8 +17,8 @@ export function DonationCard({ donation }: DonationCardProps) {
           <Image
             src={donation.imageUrl}
             alt={donation.title}
-            layout="fill"
-            objectFit="cover"
+            fill
+            className="object-cover"
             data-ai-hint={donation.imageHint}
           />
         </div>
