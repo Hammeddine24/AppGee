@@ -1,18 +1,157 @@
 "use client"
+import { useState } from 'react';
+import { useAuth } from '@/hooks/use-auth';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import * as z from 'zod';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Switch } from '@/components/ui/switch';
+import { Separator } from '@/components/ui/separator';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
+import { useToast } from '@/hooks/use-toast';
+import { updateUserName } from '@/lib/user';
+import { useRouter } from 'next/navigation';
+
+const profileSchema = z.object({
+  name: z.string().min(3, { message: "Le nom doit contenir au moins 3 caractères." }),
+});
+
+type ProfileFormValues = z.infer<typeof profileSchema>;
 
 export default function SettingsPage() {
+    const { user, loading } = useAuth();
+    const { toast } = useToast();
+    const router = useRouter();
+    const [isSubmitting, setIsSubmitting] = useState(false);
+
+    const form = useForm<ProfileFormValues>({
+        resolver: zodResolver(profileSchema),
+        values: {
+            name: user?.displayName || '',
+        },
+    });
+
+    const handleProfileUpdate = async (data: ProfileFormValues) => {
+        if (!user) return;
+        setIsSubmitting(true);
+        try {
+            await updateUserName(user.uid, data.name);
+            toast({
+                title: "Succès",
+                description: "Votre nom a été mis à jour.",
+            });
+            // Note: A page reload might be needed to see the change in the header immediately
+        } catch (error) {
+            toast({
+                title: "Erreur",
+                description: "Impossible de mettre à jour votre nom.",
+                variant: "destructive",
+            });
+        } finally {
+            setIsSubmitting(false);
+        }
+    };
+    
+    const handleDeleteAccount = () => {
+        // This is a placeholder for the actual account deletion logic
+        console.log("Account deletion requested for user:", user?.uid);
+        toast({
+            title: "Action non implémentée",
+            description: "La suppression de compte sera bientôt disponible.",
+        });
+    }
+
+    if (loading) {
+        return <p>Chargement...</p>
+    }
+    
+    if (!user) {
+        router.push('/login');
+        return null;
+    }
+
     return (
         <div className="container mx-auto py-8 px-4 sm:px-6 lg:px-8">
-             <Card className="max-w-2xl mx-auto">
-                <CardHeader>
-                    <CardTitle>Paramètres</CardTitle>
-                    <CardDescription>Gérez les paramètres de votre compte.</CardDescription>
-                </CardHeader>
-                <CardContent>
-                   <p>Cette page est en cours de construction.</p>
-                </CardContent>
-            </Card>
+             <div className="max-w-2xl mx-auto space-y-8">
+                {/* Profile Settings */}
+                <Card>
+                    <CardHeader>
+                        <CardTitle>Profil</CardTitle>
+                        <CardDescription>Gérez les informations publiques de votre profil.</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                        <form onSubmit={form.handleSubmit(handleProfileUpdate)} className="space-y-4">
+                            <div className="space-y-2">
+                                <Label htmlFor="name">Nom d'utilisateur</Label>
+                                <Input id="name" {...form.register('name')} />
+                                {form.formState.errors.name && (
+                                    <p className="text-sm text-destructive">{form.formState.errors.name.message}</p>
+                                )}
+                            </div>
+                            <Button type="submit" disabled={isSubmitting}>
+                                {isSubmitting ? 'Enregistrement...' : 'Enregistrer les modifications'}
+                            </Button>
+                        </form>
+                    </CardContent>
+                </Card>
+
+                {/* Notification Settings */}
+                <Card>
+                    <CardHeader>
+                        <CardTitle>Notifications</CardTitle>
+                        <CardDescription>Choisissez comment vous souhaitez être notifié.</CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                       <div className="flex items-center justify-between">
+                            <div>
+                                <Label htmlFor="email-notifications" className="font-medium">Notifications par e-mail</Label>
+                                <p className="text-sm text-muted-foreground">Recevoir des e-mails sur l'activité de votre compte.</p>
+                            </div>
+                            <Switch id="email-notifications" />
+                       </div>
+                       <Separator />
+                       <div className="flex items-center justify-between">
+                            <div>
+                                <Label htmlFor="push-notifications" className="font-medium">Notifications push</Label>
+                                <p className="text-sm text-muted-foreground">Recevoir des notifications push sur vos appareils.</p>
+                            </div>
+                            <Switch id="push-notifications" disabled />
+                       </div>
+                    </CardContent>
+                </Card>
+
+                {/* Danger Zone */}
+                <Card className="border-destructive">
+                    <CardHeader>
+                        <CardTitle className="text-destructive">Zone de danger</CardTitle>
+                        <CardDescription>Ces actions sont irréversibles. Soyez prudent.</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                       <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                                <Button variant="destructive">Supprimer mon compte</Button>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent>
+                                <AlertDialogHeader>
+                                    <AlertDialogTitle>Êtes-vous absolument sûr ?</AlertDialogTitle>
+                                    <AlertDialogDescription>
+                                        Cette action est irréversible. Toutes vos données, y compris vos dons, seront définitivement supprimées.
+                                    </AlertDialogDescription>
+                                </AlertDialogHeader>
+                                <AlertDialogFooter>
+                                    <AlertDialogCancel>Annuler</AlertDialogCancel>
+                                    <AlertDialogAction onClick={handleDeleteAccount} className="bg-destructive hover:bg-destructive/90">
+                                        Oui, supprimer mon compte
+                                    </AlertDialogAction>
+                                </AlertDialogFooter>
+                            </AlertDialogContent>
+                        </AlertDialog>
+                    </CardContent>
+                </Card>
+             </div>
         </div>
     )
 }
