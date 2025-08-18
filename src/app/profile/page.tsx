@@ -3,8 +3,9 @@ import { useAuth } from '@/hooks/use-auth';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Skeleton } from '@/components/ui/skeleton';
+import HomeLayout from '../home/layout';
 
-export default function ProfilePage() {
+function ProfilePageContent() {
     const { user, loading, connectionCode } = useAuth();
 
     if (loading) {
@@ -58,5 +59,13 @@ export default function ProfilePage() {
                 </CardContent>
             </Card>
         </div>
+    )
+}
+
+export default function ProfilePage() {
+    return (
+        <HomeLayout>
+            <ProfilePageContent />
+        </HomeLayout>
     )
 }

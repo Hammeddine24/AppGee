@@ -20,6 +20,7 @@ import Image from 'next/image';
 import { useToast } from "@/hooks/use-toast";
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { UploadCloud } from 'lucide-react';
+import HomeLayout from '../home/layout';
 
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
 const ACCEPTED_IMAGE_TYPES = ["image/jpeg", "image/jpg", "image/png", "image/webp"];
@@ -40,7 +41,7 @@ const donationSchema = z.object({
 
 type DonationFormValues = z.infer<typeof donationSchema>;
 
-export default function NewDonationPage() {
+function NewDonationPageContent() {
   const router = useRouter();
   const { toast } = useToast();
   const { user } = useAuth();
@@ -253,4 +254,12 @@ export default function NewDonationPage() {
       </Card>
     </div>
   );
+}
+
+export default function NewDonationPage() {
+    return (
+        <HomeLayout>
+            <NewDonationPageContent />
+        </HomeLayout>
+    )
 }

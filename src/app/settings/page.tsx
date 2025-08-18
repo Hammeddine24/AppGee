@@ -14,6 +14,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { useToast } from '@/hooks/use-toast';
 import { updateUserName } from '@/lib/user';
 import { useRouter } from 'next/navigation';
+import HomeLayout from '../home/layout';
 
 const profileSchema = z.object({
   name: z.string().min(3, { message: "Le nom doit contenir au moins 3 caractères." }),
@@ -21,7 +22,7 @@ const profileSchema = z.object({
 
 type ProfileFormValues = z.infer<typeof profileSchema>;
 
-export default function SettingsPage() {
+function SettingsPageContent() {
     const { user, loading } = useAuth();
     const { toast } = useToast();
     const router = useRouter();
@@ -65,7 +66,7 @@ export default function SettingsPage() {
     }
 
     if (loading) {
-        return <p>Chargement...</p>
+        return <div className="container mx-auto py-8"><p>Chargement...</p></div>
     }
     
     if (!user) {
@@ -153,5 +154,13 @@ export default function SettingsPage() {
                 </Card>
              </div>
         </div>
+    )
+}
+
+export default function SettingsPage() {
+    return (
+        <HomeLayout>
+            <SettingsPageContent />
+        </HomeLayout>
     )
 }

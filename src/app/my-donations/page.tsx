@@ -6,8 +6,9 @@ import type { Donation } from '@/lib/types';
 import { DonationCard } from '@/components/donation-card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import HomeLayout from '../home/layout';
 
-export default function MyDonationsPage() {
+function MyDonationsPageContent() {
   const { user, loading: authLoading } = useAuth();
   const [donations, setDonations] = useState<Donation[]>([]);
   const [loading, setLoading] = useState(true);
@@ -71,4 +72,13 @@ export default function MyDonationsPage() {
       )}
     </div>
   );
+}
+
+
+export default function MyDonationsPage() {
+    return (
+        <HomeLayout>
+            <MyDonationsPageContent />
+        </HomeLayout>
+    )
 }
