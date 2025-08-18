@@ -28,11 +28,6 @@ export async function createUser(name: string, email: string, password: string):
       connectionCode: connectionCode,
       createdAt: new Date(),
     });
-    
-    // We also store the password in the user's document for the login process.
-    // NOTE: In a real-world application, you would NEVER store plain text passwords.
-    // This is a temporary solution for the prototype's custom auth flow.
-    // With signInWithEmailAndPassword, this is not strictly necessary but keeps the logic consistent.
 
     return { user, connectionCode };
   } catch (error: any) {
@@ -68,7 +63,6 @@ export function getCurrentUser(): User | null {
 export async function handleSignOut() {
     try {
         await signOut(auth);
-        sessionStorage.removeItem('user'); // Also clear session storage for safety
     } catch (error) {
         console.error("Error signing out: ", error);
         throw new Error("Impossible de se déconnecter.");
