@@ -29,6 +29,7 @@ const donationSchema = z.object({
   title: z.string().min(3, { message: "Le titre doit contenir au moins 3 caractères." }),
   description: z.string().min(10, { message: "La description doit contenir au moins 10 caractères." }),
   category: z.string({ required_error: "Veuillez sélectionner une catégorie." }),
+  contact: z.string().min(3, { message: "Veuillez fournir une information de contact." }),
   image: z
     .any()
     .refine((files) => files?.length == 1, "Une image est requise.")
@@ -55,6 +56,7 @@ function NewDonationPageContent() {
     defaultValues: {
       title: '',
       description: '',
+      contact: '',
       image: undefined,
     }
   });
@@ -97,6 +99,7 @@ function NewDonationPageContent() {
         title: data.title,
         description: data.description,
         category: data.category,
+        contact: data.contact,
         imageUrl: imageUrl,
         imageHint: data.category.toLowerCase(),
       };
@@ -189,6 +192,19 @@ function NewDonationPageContent() {
                         <SelectItem value="Autre">Autre</SelectItem>
                       </SelectContent>
                     </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="contact"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Information de contact</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Ex: monemail@exemple.com ou 0612345678" {...field} />
+                    </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}

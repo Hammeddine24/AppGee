@@ -12,6 +12,7 @@ const mapDocToDonation = (doc: any): Donation => {
       category: data.category,
       imageUrl: data.imageUrl,
       imageHint: data.imageHint,
+      contact: data.contact,
       user: {
         id: data.user.id,
         name: data.user.name,
@@ -41,7 +42,7 @@ export async function getDonationsByUser(userId: string): Promise<Donation[]> {
 
 
 type NewDonation = Omit<Donation, 'id' | 'user' | 'createdAt'>;
-type User = Omit<Donation['user'], 'avatarUrl'>;
+type User = Pick<Donation['user'], 'id' | 'name'>;
 
 export async function addDonation(donation: NewDonation, user: User): Promise<string> {
   try {

@@ -1,9 +1,20 @@
 import Image from 'next/image';
 import type { Donation } from '@/lib/types';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog"
+
 
 interface DonationCardProps {
   donation: Donation;
@@ -35,7 +46,25 @@ export function DonationCard({ donation }: DonationCardProps) {
           </Avatar>
           <span className="text-sm font-medium">{donation.user.name}</span>
         </div>
-        <Button variant="outline">Contacter</Button>
+        <AlertDialog>
+          <AlertDialogTrigger asChild>
+            <Button variant="outline">Contacter</Button>
+          </AlertDialogTrigger>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Contacter {donation.user.name}</AlertDialogTitle>
+              <AlertDialogDescription>
+                Utilisez les informations ci-dessous pour contacter le donateur.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <div className="my-4 p-4 bg-muted rounded-md text-center">
+                <p className="text-lg font-semibold">{donation.contact}</p>
+            </div>
+            <AlertDialogFooter>
+              <AlertDialogAction>Fermer</AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </CardFooter>
     </Card>
   );

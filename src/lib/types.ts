@@ -5,6 +5,7 @@ export type Donation = {
   category: string;
   imageUrl: string;
   imageHint: string;
+  contact: string; // Email, phone number, etc.
   user: {
     id: string;
     name: string;
