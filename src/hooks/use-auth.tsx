@@ -1,3 +1,4 @@
+
 "use client";
 
 import React, { useState, useEffect, useContext, createContext } from 'react';
@@ -21,8 +22,6 @@ const AuthContext = createContext<AuthContextType>({
   isLoggedIn: false,
 });
 
-// This custom hook simplifies the process of user authentication
-// and keeps user information in a shared state across the application
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
@@ -31,19 +30,13 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       if (user) {
-        // User is signed in. The user object from onAuthStateChanged is the source of truth.
-        // It should have the displayName if it was set correctly during sign-up.
         setUser(user);
-
-        // Fetch supplementary data from Firestore
         const userDocRef = doc(db, "users", user.uid);
         const userDoc = await getDoc(userDocRef);
         if (userDoc.exists()) {
-            const userData = userDoc.data();
-            setConnectionCode(userData.connectionCode);
+            setConnectionCode(userDoc.data().connectionCode);
         }
       } else {
-        // User is signed out
         setUser(null);
         setConnectionCode(undefined);
       }

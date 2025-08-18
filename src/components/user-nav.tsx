@@ -1,10 +1,11 @@
+
 "use client"
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/hooks/use-auth";
 import { handleSignOut } from "@/lib/auth";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
 import {
   DropdownMenu,
@@ -31,6 +32,8 @@ export function UserNav() {
   }
   
   if (!isLoggedIn || !user) {
+    // This case should ideally not be hit if the component is used in a protected layout,
+    // but it's a good safeguard.
     return null;
   }
 
@@ -39,7 +42,7 @@ export function UserNav() {
       <DropdownMenuTrigger asChild>
         <Button variant="ghost" className="relative h-8 w-8 rounded-full">
           <Avatar className="h-9 w-9">
-            <AvatarFallback>{user.displayName?.charAt(0) || 'U'}</AvatarFallback>
+            <AvatarFallback>{user.displayName?.charAt(0).toUpperCase() || 'U'}</AvatarFallback>
           </Avatar>
         </Button>
       </DropdownMenuTrigger>
