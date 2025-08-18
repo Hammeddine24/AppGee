@@ -105,10 +105,7 @@ function NewDonationPageContent() {
         imageHint: imageHint.toLowerCase(),
       };
 
-      await addDonation(newDonation, {
-        id: user.uid,
-        name: user.displayName || 'Utilisateur Anonyme',
-      });
+      await addDonation(newDonation);
       
       triggerDonationsUpdate();
 
@@ -122,7 +119,7 @@ function NewDonationPageContent() {
       console.error("Error adding donation: ", error);
       toast({
         title: "Erreur",
-        description: "Une erreur est survenue lors de la publication de votre don.",
+        description: "Une erreur est survenue lors de la publication de votre don. Vérifiez les permissions de votre base de données.",
         variant: "destructive",
       });
     } finally {

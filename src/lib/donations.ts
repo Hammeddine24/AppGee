@@ -1,6 +1,7 @@
 import { db } from './firebase';
 import { collection, getDocs, query, orderBy, addDoc, serverTimestamp, where } from 'firebase/firestore';
 import type { Donation } from './types';
+import { getAuth } from 'firebase/auth';
 
 const mapDocToDonation = (doc: any): Donation => {
     const data = doc.data();
@@ -41,14 +42,23 @@ export async function getDonationsByUser(userId: string): Promise<Donation[]> {
 
 
 type NewDonation = Omit<Donation, 'id' | 'user' | 'createdAt'>;
-type User = Pick<Donation['user'], 'id' | 'name'>;
 
-export async function addDonation(donation: NewDonation, user: User): Promise<string> {
+export async function addDonation(donation: NewDonation): Promise<string> {
+  const auth = getAuth();
+  const user = auth.currentUser;
+
+  if (!user) {
+    throw new Error('User is not authenticated. Cannot add donation.');
+  }
+  
   try {
     const donationsCollection = collection(db, 'donations');
     const newDocRef = await addDoc(donationsCollection, {
       ...donation,
-      user: user,
+      user: {
+        id: user.uid,
+        name: user.displayName || 'Utilisateur Anonyme',
+      },
       createdAt: serverTimestamp(),
     });
     return newDocRef.id;
