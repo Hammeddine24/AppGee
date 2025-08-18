@@ -1,4 +1,4 @@
-import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "firebase/auth";
+import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut, updateProfile } from "firebase/auth";
 import { doc, setDoc, getDocs, query, where, collection, limit } from "firebase/firestore";
 import firebaseApp, { db } from "./firebase";
 import type { User } from 'firebase/auth';
@@ -19,6 +19,9 @@ export async function createUser(name: string, email: string, password: string):
     const userCredential = await createUserWithEmailAndPassword(auth, email, password);
     const user = userCredential.user;
 
+    // Set the displayName directly on the Firebase Auth user object
+    await updateProfile(user, { displayName: name });
+
     const connectionCode = generateConnectionCode();
 
     // Store user info and connection code in Firestore
@@ -28,8 +31,15 @@ export async function createUser(name: string, email: string, password: string):
       connectionCode: connectionCode,
       createdAt: new Date(),
     });
+    
+    // Refresh user to get the updated info
+    await user.reload();
+    const refreshedUser = auth.currentUser;
+    if (!refreshedUser) {
+        throw new Error("Failed to refresh user.")
+    }
 
-    return { user, connectionCode };
+    return { user: refreshedUser, connectionCode };
   } catch (error: any) {
     if (error.code === 'auth/email-already-in-use') {
       throw new Error('Cette adresse e-mail est déjà utilisée.');

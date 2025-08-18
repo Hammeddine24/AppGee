@@ -31,18 +31,19 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       if (user) {
-        // If user is logged in via Firebase Auth, fetch their custom data
+        // User is signed in. The user object from onAuthStateChanged is the source of truth.
+        // It should have the displayName if it was set correctly during sign-up.
+        setUser(user);
+
+        // Fetch supplementary data from Firestore
         const userDocRef = doc(db, "users", user.uid);
         const userDoc = await getDoc(userDocRef);
         if (userDoc.exists()) {
             const userData = userDoc.data();
-            // Augment user object with display name and connection code
-            // This ensures user.displayName is available across the app
-            user.displayName = userData.name || user.displayName;
             setConnectionCode(userData.connectionCode);
         }
-        setUser(user);
       } else {
+        // User is signed out
         setUser(null);
         setConnectionCode(undefined);
       }

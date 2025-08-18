@@ -1,21 +1,26 @@
 import { doc, updateDoc, getDoc } from "firebase/firestore";
+import { getAuth, updateProfile } from "firebase/auth";
 import { db } from './firebase';
 
 export async function updateUserName(userId: string, newName: string): Promise<void> {
-    const userRef = doc(db, 'users', userId);
+    const auth = getAuth();
+    const user = auth.currentUser;
+
+    if (!user || user.uid !== userId) {
+        throw new Error("User not found or mismatch.");
+    }
+
     try {
+        // Update Firebase Auth profile
+        await updateProfile(user, { displayName: newName });
+        
+        // Update Firestore document
+        const userRef = doc(db, 'users', userId);
         await updateDoc(userRef, {
             name: newName
         });
         
-        // Update the session storage if it exists
-        const sessionUser = sessionStorage.getItem('user');
-        if(sessionUser) {
-            const user = JSON.parse(sessionUser);
-            user.displayName = newName;
-            sessionStorage.setItem('user', JSON.stringify(user));
-        }
-
+        // No need to manage sessionStorage, onAuthStateChanged will handle the update
     } catch (error) {
         console.error("Error updating user name: ", error);
         throw new Error("Failed to update user name.");
