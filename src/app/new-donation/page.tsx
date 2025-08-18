@@ -1,26 +1,41 @@
 "use client";
 
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { addDonation } from '@/lib/donations';
+import { uploadImage } from '@/lib/storage';
+import { useAuth } from '@/hooks/use-auth';
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Progress } from "@/components/ui/progress";
+import Image from 'next/image';
 import { useToast } from "@/hooks/use-toast";
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { UploadCloud } from 'lucide-react';
+
+const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
+const ACCEPTED_IMAGE_TYPES = ["image/jpeg", "image/jpg", "image/png", "image/webp"];
 
 const donationSchema = z.object({
   title: z.string().min(3, { message: "Le titre doit contenir au moins 3 caractères." }),
   description: z.string().min(10, { message: "La description doit contenir au moins 10 caractères." }),
   category: z.string({ required_error: "Veuillez sélectionner une catégorie." }),
-  imageUrl: z.string().url({ message: "Veuillez entrer une URL d'image valide." }),
+  image: z
+    .any()
+    .refine((files) => files?.length == 1, "Une image est requise.")
+    .refine((files) => files?.[0]?.size <= MAX_FILE_SIZE, `La taille maximale est de 5MB.`)
+    .refine(
+      (files) => ACCEPTED_IMAGE_TYPES.includes(files?.[0]?.type),
+      "Formats acceptés: .jpg, .jpeg, .png et .webp."
+    ),
 });
 
 type DonationFormValues = z.infer<typeof donationSchema>;
@@ -28,32 +43,67 @@ type DonationFormValues = z.infer<typeof donationSchema>;
 export default function NewDonationPage() {
   const router = useRouter();
   const { toast } = useToast();
+  const { user } = useAuth();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const [previewImage, setPreviewImage] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const form = useForm<DonationFormValues>({
     resolver: zodResolver(donationSchema),
     defaultValues: {
       title: '',
       description: '',
-      imageUrl: '',
+      image: undefined,
     }
   });
 
-  async function onSubmit(data: DonationFormValues) {
-    setIsSubmitting(true);
-    try {
-      // Hardcoded user for now, as there is no auth
-      const user = {
-        name: 'Utilisateur Anonyme',
-        avatarUrl: 'https://i.pravatar.cc/40?u=anonymous',
+  const handleImageChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setPreviewImage(reader.result as string);
       };
-      
+      reader.readAsDataURL(file);
+    } else {
+      setPreviewImage(null);
+    }
+  };
+
+
+  async function onSubmit(data: DonationFormValues) {
+    if (!user) {
+      toast({
+        title: "Erreur d'authentification",
+        description: "Vous devez être connecté pour publier un don.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsSubmitting(true);
+    setUploadProgress(0);
+
+    try {
+      const imageFile = data.image[0];
+      const imageUrl = await uploadImage(
+        imageFile,
+        (progress) => setUploadProgress(progress)
+      );
+
       const newDonation = {
-        ...data,
-        imageHint: data.category.toLowerCase(), // simple hint from category
+        title: data.title,
+        description: data.description,
+        category: data.category,
+        imageUrl: imageUrl,
+        imageHint: data.category.toLowerCase(),
       };
 
-      await addDonation(newDonation, user);
+      await addDonation(newDonation, {
+        name: user.displayName || 'Utilisateur Anonyme',
+        avatarUrl: user.photoURL || `https://i.pravatar.cc/40?u=${user.uid}`,
+      });
 
       toast({
         title: "Succès!",
@@ -62,7 +112,7 @@ export default function NewDonationPage() {
 
       router.push('/home');
     } catch (error) {
-      console.error("Error adding document: ", error);
+      console.error("Error adding donation: ", error);
       toast({
         title: "Erreur",
         description: "Une erreur est survenue lors de la publication de votre don.",
@@ -70,6 +120,7 @@ export default function NewDonationPage() {
       });
     } finally {
       setIsSubmitting(false);
+      setUploadProgress(0);
     }
   }
 
@@ -134,27 +185,66 @@ export default function NewDonationPage() {
                         <SelectItem value="Décoration">Décoration</SelectItem>
                         <SelectItem value="Jardinage">Jardinage</SelectItem>
                         <SelectItem value="Cuisine">Cuisine</SelectItem>
-                         <SelectItem value="Autre">Autre</SelectItem>
+                        <SelectItem value="Autre">Autre</SelectItem>
                       </SelectContent>
                     </Select>
                     <FormMessage />
                   </FormItem>
                 )}
               />
-               <FormField
+              <FormField
                 control={form.control}
-                name="imageUrl"
+                name="image"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>URL de l'image</FormLabel>
+                    <FormLabel>Photo de l'objet</FormLabel>
                     <FormControl>
-                      <Input type="url" placeholder="https://exemple.com/image.png" {...field} />
+                      <div className="w-full">
+                        <Input
+                          type="file"
+                          accept="image/*"
+                          className="hidden"
+                          ref={fileInputRef}
+                          onChange={(e) => {
+                            field.onChange(e.target.files);
+                            handleImageChange(e);
+                          }}
+                        />
+                         <Button
+                          type="button"
+                          variant="outline"
+                          onClick={() => fileInputRef.current?.click()}
+                          className="w-full"
+                        >
+                          <UploadCloud className="mr-2 h-4 w-4" />
+                          {previewImage ? "Changer l'image" : "Sélectionner une image"}
+                        </Button>
+                      </div>
                     </FormControl>
+                     {previewImage && (
+                      <div className="mt-4 w-full aspect-video relative rounded-md overflow-hidden border">
+                          <Image src={previewImage} alt="Aperçu de l'image" fill className="object-cover" />
+                      </div>
+                    )}
                     <FormMessage />
                   </FormItem>
                 )}
               />
-              <Button type="submit" className="w-full" disabled={isSubmitting}>
+               {isSubmitting && (
+                  <div className="space-y-2">
+                    <Label>Téléversement en cours...</Label>
+                    <Progress value={uploadProgress} />
+                  </div>
+                )}
+                 {!user && (
+                    <Alert variant="destructive">
+                      <AlertTitle>Attention</AlertTitle>
+                      <AlertDescription>
+                        Vous devez être connecté pour publier un don.
+                      </AlertDescription>
+                    </Alert>
+                  )}
+              <Button type="submit" className="w-full" disabled={isSubmitting || !user}>
                 {isSubmitting ? 'Publication en cours...' : 'Publier le don'}
               </Button>
             </form>

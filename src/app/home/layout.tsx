@@ -1,4 +1,5 @@
 import { Header } from "@/components/header";
+import { AuthProvider } from "@/hooks/use-auth";
 
 export default function HomeLayout({
   children,
@@ -6,9 +7,11 @@ export default function HomeLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div className="min-h-screen flex flex-col">
-      <Header />
-      <main className="flex-1">{children}</main>
-    </div>
+    <AuthProvider>
+      <div className="min-h-screen flex flex-col">
+        <Header />
+        <main className="flex-1">{children}</main>
+      </div>
+    </AuthProvider>
   );
 }

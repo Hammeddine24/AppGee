@@ -40,8 +40,6 @@ export default function LoginPage() {
       if (user) {
         toast({ title: "Succès", description: "Connexion réussie." });
         router.push('/home');
-      } else {
-        throw new Error("Code de connexion invalide.");
       }
     } catch (error: any) {
       toast({
@@ -61,6 +59,8 @@ export default function LoginPage() {
       const { user, connectionCode } = await createUser(signUpName, signUpEmail, signUpPassword);
       setGeneratedCode(connectionCode);
       setShowCodeDialog(true);
+       // After sign up, we also log them in by setting the session storage
+      sessionStorage.setItem('user', JSON.stringify(user));
     } catch (error: any) {
       toast({
         title: "Erreur d'inscription",
