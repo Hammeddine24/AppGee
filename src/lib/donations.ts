@@ -1,15 +1,9 @@
 import { db } from './firebase';
-import { collection, getDocs, query, orderBy, addDoc, serverTimestamp } from 'firebase/firestore';
+import { collection, getDocs, query, orderBy, addDoc, serverTimestamp, where } from 'firebase/firestore';
 import type { Donation } from './types';
 
-export async function getDonations(): Promise<Donation[]> {
-  const donationsCollection = collection(db, 'donations');
-  const q = query(donationsCollection, orderBy('createdAt', 'desc'));
-  const querySnapshot = await getDocs(q);
-  
-  const donations = querySnapshot.docs.map(doc => {
+const mapDocToDonation = (doc: any): Donation => {
     const data = doc.data();
-    // Convert Firestore Timestamp to ISO string if it's not already
     const createdAt = data.createdAt?.toDate ? data.createdAt.toDate().toISOString() : new Date().toISOString();
     return {
       id: doc.id,
@@ -19,15 +13,33 @@ export async function getDonations(): Promise<Donation[]> {
       imageUrl: data.imageUrl,
       imageHint: data.imageHint,
       user: {
+        id: data.user.id,
         name: data.user.name,
         avatarUrl: data.user.avatarUrl,
       },
       createdAt: createdAt,
     } as Donation;
-  });
-  
-  return donations;
 }
+
+
+export async function getDonations(): Promise<Donation[]> {
+  const donationsCollection = collection(db, 'donations');
+  const q = query(donationsCollection, orderBy('createdAt', 'desc'));
+  const querySnapshot = await getDocs(q);
+  return querySnapshot.docs.map(mapDocToDonation);
+}
+
+export async function getDonationsByUser(userId: string): Promise<Donation[]> {
+  const donationsCollection = collection(db, 'donations');
+  const q = query(
+    donationsCollection, 
+    where('user.id', '==', userId), 
+    orderBy('createdAt', 'desc')
+  );
+  const querySnapshot = await getDocs(q);
+  return querySnapshot.docs.map(mapDocToDonation);
+}
+
 
 type NewDonation = Omit<Donation, 'id' | 'user' | 'createdAt'>;
 type User = Donation['user'];

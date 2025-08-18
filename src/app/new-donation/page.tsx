@@ -101,6 +101,7 @@ export default function NewDonationPage() {
       };
 
       await addDonation(newDonation, {
+        id: user.uid,
         name: user.displayName || 'Utilisateur Anonyme',
         avatarUrl: user.photoURL || `https://i.pravatar.cc/40?u=${user.uid}`,
       });

@@ -1,5 +1,6 @@
 "use client"
 
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/hooks/use-auth";
 import { handleSignOut } from "@/lib/auth";
@@ -54,14 +55,14 @@ export function UserNav() {
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
         <DropdownMenuGroup>
-          <DropdownMenuItem>
-            Profil
+          <DropdownMenuItem asChild>
+            <Link href="/profile">Profil</Link>
           </DropdownMenuItem>
-          <DropdownMenuItem>
-            Mes dons
+          <DropdownMenuItem asChild>
+            <Link href="/my-donations">Mes dons</Link>
           </DropdownMenuItem>
-          <DropdownMenuItem>
-            Paramètres
+          <DropdownMenuItem asChild>
+            <Link href="/settings">Paramètres</Link>
           </DropdownMenuItem>
         </DropdownMenuGroup>
         <DropdownMenuSeparator />
