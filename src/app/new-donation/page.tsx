@@ -8,12 +8,12 @@ import * as z from 'zod';
 import { addDonation } from '@/lib/donations';
 import { uploadImage } from '@/lib/storage';
 import { useAuth } from '@/hooks/use-auth';
+import { triggerDonationsUpdate } from '@/hooks/use-donations';
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from '@/components/ui/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Progress } from "@/components/ui/progress";
 import { Label } from "@/components/ui/label";
@@ -29,7 +29,6 @@ const ACCEPTED_IMAGE_TYPES = ["image/jpeg", "image/jpg", "image/png", "image/web
 const donationSchema = z.object({
   title: z.string().min(3, { message: "Le titre doit contenir au moins 3 caractères." }),
   description: z.string().min(10, { message: "La description doit contenir au moins 10 caractères." }),
-  category: z.string({ required_error: "Veuillez sélectionner une catégorie." }),
   contact: z.string().min(3, { message: "Veuillez fournir une information de contact." }),
   image: z
     .any()
@@ -95,20 +94,23 @@ function NewDonationPageContent() {
         imageFile,
         (progress) => setUploadProgress(progress)
       );
+      
+      const imageHint = data.title.split(' ').slice(0, 2).join(' ');
 
       const newDonation = {
         title: data.title,
         description: data.description,
-        category: data.category,
         contact: data.contact,
         imageUrl: imageUrl,
-        imageHint: data.category.toLowerCase(),
+        imageHint: imageHint.toLowerCase(),
       };
 
       await addDonation(newDonation, {
         id: user.uid,
         name: user.displayName || 'Utilisateur Anonyme',
       });
+      
+      triggerDonationsUpdate();
 
       toast({
         title: "Succès!",
@@ -167,32 +169,6 @@ function NewDonationPageContent() {
                         {...field}
                       />
                     </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="category"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Catégorie</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Sélectionnez une catégorie" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        <SelectItem value="Mobilier">Mobilier</SelectItem>
-                        <SelectItem value="Musique">Musique</SelectItem>
-                        <SelectItem value="Sport">Sport</SelectItem>
-                        <SelectItem value="Décoration">Décoration</SelectItem>
-                        <SelectItem value="Jardinage">Jardinage</SelectItem>
-                        <SelectItem value="Cuisine">Cuisine</SelectItem>
-                        <SelectItem value="Autre">Autre</SelectItem>
-                      </SelectContent>
-                    </Select>
                     <FormMessage />
                   </FormItem>
                 )}

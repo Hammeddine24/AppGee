@@ -1,37 +1,25 @@
 "use client"
 import React, { useEffect, useState } from 'react';
 import { useAuth } from '@/hooks/use-auth';
-import { getDonationsByUser } from '@/lib/donations';
 import type { Donation } from '@/lib/types';
 import { DonationCard } from '@/components/donation-card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import HomeLayout from '../home/layout';
+import { useDonations } from '@/hooks/use-donations';
 
 function MyDonationsPageContent() {
   const { user, loading: authLoading } = useAuth();
-  const [donations, setDonations] = useState<Donation[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { donations, loading: donationsLoading } = useDonations();
+  const [userDonations, setUserDonations] = useState<Donation[]>([]);
 
   useEffect(() => {
-    async function fetchDonations() {
-      if (user) {
-        try {
-          const userDonations = await getDonationsByUser(user.uid);
-          setDonations(userDonations);
-        } catch (error) {
-          console.error("Failed to fetch user donations:", error);
-        } finally {
-          setLoading(false);
-        }
-      } else if (!authLoading) {
-        setLoading(false);
-      }
+    if (user && donations.length > 0) {
+      setUserDonations(donations.filter(d => d.user.id === user.uid));
     }
-    fetchDonations();
-  }, [user, authLoading]);
+  }, [user, donations]);
 
-  const isLoading = authLoading || loading;
+  const isLoading = authLoading || donationsLoading;
 
   return (
     <div className="container mx-auto py-8 px-4 sm:px-6 lg:px-8">
@@ -56,7 +44,7 @@ function MyDonationsPageContent() {
             Veuillez vous connecter pour voir vos dons.
           </AlertDescription>
         </Alert>
-      ) : donations.length === 0 ? (
+      ) : userDonations.length === 0 ? (
         <Alert>
           <AlertTitle>Aucun don trouvé</AlertTitle>
           <AlertDescription>
@@ -65,7 +53,7 @@ function MyDonationsPageContent() {
         </Alert>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {donations.map((donation) => (
+          {userDonations.map((donation) => (
             <DonationCard key={donation.id} donation={donation} />
           ))}
         </div>

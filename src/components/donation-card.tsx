@@ -35,14 +35,13 @@ export function DonationCard({ donation }: DonationCardProps) {
         </div>
       </CardHeader>
       <CardContent className="flex-grow p-4">
-        <Badge variant="secondary" className="mb-2">{donation.category}</Badge>
         <h3 className="text-lg font-bold">{donation.title}</h3>
-        <p className="text-sm text-muted-foreground mt-1">{donation.description}</p>
+        <p className="text-sm text-muted-foreground mt-1 line-clamp-2">{donation.description}</p>
       </CardContent>
       <CardFooter className="flex justify-between items-center p-4 pt-0">
         <div className="flex items-center gap-2">
           <Avatar className="h-8 w-8">
-            <AvatarFallback>{donation.user.name.charAt(0)}</AvatarFallback>
+            <AvatarFallback>{donation.user.name.charAt(0).toUpperCase()}</AvatarFallback>
           </Avatar>
           <span className="text-sm font-medium">{donation.user.name}</span>
         </div>

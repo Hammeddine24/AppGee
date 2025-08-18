@@ -2,7 +2,6 @@ export type Donation = {
   id: string;
   title: string;
   description: string;
-  category: string;
   imageUrl: string;
   imageHint: string;
   contact: string; // Email, phone number, etc.

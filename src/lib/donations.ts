@@ -9,7 +9,6 @@ const mapDocToDonation = (doc: any): Donation => {
       id: doc.id,
       title: data.title,
       description: data.description,
-      category: data.category,
       imageUrl: data.imageUrl,
       imageHint: data.imageHint,
       contact: data.contact,
