@@ -31,24 +31,22 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       if (user) {
-        // If user is logged in via standard Firebase Auth, fetch their custom data
+        // If user is logged in via Firebase Auth, fetch their custom data
         const userDocRef = doc(db, "users", user.uid);
         const userDoc = await getDoc(userDocRef);
         if (userDoc.exists()) {
             const userData = userDoc.data();
             // Augment user object with display name and connection code
-            user.displayName = userData.name;
+            // This ensures user.displayName is available across the app
+            if (userData.name) {
+              user.displayName = userData.name;
+            }
             setConnectionCode(userData.connectionCode);
         }
         setUser(user);
       } else {
-        // Handle client-side session for code-based login
-        const sessionUser = sessionStorage.getItem('user');
-        if (sessionUser) {
-            setUser(JSON.parse(sessionUser));
-        } else {
-            setUser(null);
-        }
+        setUser(null);
+        setConnectionCode(undefined);
       }
       setLoading(false);
     });
