@@ -38,9 +38,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
             const userData = userDoc.data();
             // Augment user object with display name and connection code
             // This ensures user.displayName is available across the app
-            if (userData.name) {
-              user.displayName = userData.name;
-            }
+            user.displayName = userData.name || user.displayName;
             setConnectionCode(userData.connectionCode);
         }
         setUser(user);
