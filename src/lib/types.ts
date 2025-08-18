@@ -9,5 +9,5 @@ export type Donation = {
     name: string;
     avatarUrl: string;
   };
-  createdAt: string;
+  createdAt: string; // Should be ISO string date
 };

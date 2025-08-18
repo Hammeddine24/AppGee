@@ -1,5 +1,5 @@
 import { db } from './firebase';
-import { collection, getDocs, query, orderBy } from 'firebase/firestore';
+import { collection, getDocs, query, orderBy, addDoc, serverTimestamp } from 'firebase/firestore';
 import type { Donation } from './types';
 
 export async function getDonations(): Promise<Donation[]> {
@@ -9,6 +9,8 @@ export async function getDonations(): Promise<Donation[]> {
   
   const donations = querySnapshot.docs.map(doc => {
     const data = doc.data();
+    // Convert Firestore Timestamp to ISO string if it's not already
+    const createdAt = data.createdAt?.toDate ? data.createdAt.toDate().toISOString() : new Date().toISOString();
     return {
       id: doc.id,
       title: data.title,
@@ -20,9 +22,27 @@ export async function getDonations(): Promise<Donation[]> {
         name: data.user.name,
         avatarUrl: data.user.avatarUrl,
       },
-      createdAt: data.createdAt,
+      createdAt: createdAt,
     } as Donation;
   });
   
   return donations;
+}
+
+type NewDonation = Omit<Donation, 'id' | 'user' | 'createdAt'>;
+type User = Donation['user'];
+
+export async function addDonation(donation: NewDonation, user: User): Promise<string> {
+  try {
+    const donationsCollection = collection(db, 'donations');
+    const newDocRef = await addDoc(donationsCollection, {
+      ...donation,
+      user: user,
+      createdAt: serverTimestamp(),
+    });
+    return newDocRef.id;
+  } catch (error) {
+    console.error("Error adding document: ", error);
+    throw new Error('Failed to add donation to database.');
+  }
 }
