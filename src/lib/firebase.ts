@@ -1,4 +1,5 @@
 import { initializeApp, getApps } from "firebase/app";
+import { getFirestore } from "firebase/firestore";
 
 const firebaseConfig = {
   "projectId": "re-life-hub",
@@ -10,6 +11,7 @@ const firebaseConfig = {
 };
 
 // Initialize Firebase
-let firebaseApp = getApps().length === 0 ? initializeApp(firebaseConfig) : getApps()[0];
+const firebaseApp = getApps().length === 0 ? initializeApp(firebaseConfig) : getApps()[0];
 
+export const db = getFirestore(firebaseApp);
 export default firebaseApp;

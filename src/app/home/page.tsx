@@ -1,11 +1,22 @@
 "use client"
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { DonationCard } from '@/components/donation-card';
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from '@/components/ui/carousel';
-import { donations } from '@/lib/mock-data';
 import Autoplay from "embla-carousel-autoplay"
+import { getDonations } from '@/lib/donations';
+import type { Donation } from '@/lib/types';
 
 export default function HomePage() {
+  const [donations, setDonations] = useState<Donation[]>([]);
+  
+  useEffect(() => {
+    async function fetchDonations() {
+      const donationsFromDb = await getDonations();
+      setDonations(donationsFromDb);
+    }
+    fetchDonations();
+  }, []);
+
   const recentDonations = donations.slice(0, 5);
   const weeklyDonations = donations.slice(5, 10);
   const plugin = React.useRef(
