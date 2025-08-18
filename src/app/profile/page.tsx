@@ -44,7 +44,6 @@ export default function ProfilePage() {
             <Card className="w-full max-w-lg">
                 <CardHeader className="items-center text-center">
                     <Avatar className="h-24 w-24 mb-4">
-                        <AvatarImage src={user.photoURL || `https://i.pravatar.cc/100?u=${user.uid}`} alt={user.displayName || "User"} />
                         <AvatarFallback>{user.displayName?.charAt(0) || 'U'}</AvatarFallback>
                     </Avatar>
                     <CardTitle className="text-2xl">{user.displayName}</CardTitle>

@@ -8,7 +8,6 @@ export type Donation = {
   user: {
     id: string;
     name: string;
-    avatarUrl: string;
   };
   createdAt: string; // Should be ISO string date
 };

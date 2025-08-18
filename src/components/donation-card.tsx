@@ -31,7 +31,6 @@ export function DonationCard({ donation }: DonationCardProps) {
       <CardFooter className="flex justify-between items-center p-4 pt-0">
         <div className="flex items-center gap-2">
           <Avatar className="h-8 w-8">
-            <AvatarImage src={donation.user.avatarUrl} alt={donation.user.name} />
             <AvatarFallback>{donation.user.name.charAt(0)}</AvatarFallback>
           </Avatar>
           <span className="text-sm font-medium">{donation.user.name}</span>

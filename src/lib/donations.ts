@@ -15,7 +15,6 @@ const mapDocToDonation = (doc: any): Donation => {
       user: {
         id: data.user.id,
         name: data.user.name,
-        avatarUrl: data.user.avatarUrl,
       },
       createdAt: createdAt,
     } as Donation;
@@ -42,7 +41,7 @@ export async function getDonationsByUser(userId: string): Promise<Donation[]> {
 
 
 type NewDonation = Omit<Donation, 'id' | 'user' | 'createdAt'>;
-type User = Donation['user'];
+type User = Omit<Donation['user'], 'avatarUrl'>;
 
 export async function addDonation(donation: NewDonation, user: User): Promise<string> {
   try {
