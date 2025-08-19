@@ -16,7 +16,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import HomeLayout from '../home/layout';
 
 // IMPORTANT: Ajoutez les adresses e-mail des administrateurs ici
-const ADMIN_EMAILS = ['admin@example.com', 'superadmin@example.com'];
+const ADMIN_EMAILS = ['florentinshammeddine@gmail.com', 'admin@example.com', 'superadmin@example.com'];
 
 function AdminDashboard() {
   const { user, loading: authLoading } = useAuth();
