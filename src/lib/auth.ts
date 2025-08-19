@@ -1,10 +1,17 @@
 
-import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, updateProfile } from "firebase/auth";
+import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, updateProfile, setPersistence, browserLocalPersistence } from "firebase/auth";
 import { doc, setDoc } from "firebase/firestore";
 import firebaseApp, { db } from "./firebase";
 import type { User } from 'firebase/auth';
 
 const auth = getAuth(firebaseApp);
+
+// Set session persistence
+setPersistence(auth, browserLocalPersistence)
+  .catch((error) => {
+    console.error("Error setting session persistence:", error);
+  });
+
 
 function generateConnectionCode(length: number = 6): string {
   const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
@@ -15,7 +22,7 @@ function generateConnectionCode(length: number = 6): string {
   return result;
 }
 
-export async function createUser(name: string, email: string, password: string): Promise<{ user: User; connectionCode: string; }> {
+export async function createUser(name: string, email: string, password:string): Promise<{ user: User; connectionCode: string; }> {
   try {
     const userCredential = await createUserWithEmailAndPassword(auth, email, password);
     const user = userCredential.user;

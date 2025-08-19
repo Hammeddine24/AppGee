@@ -1,6 +1,7 @@
+
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Leaf } from "lucide-react";
@@ -12,10 +13,12 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AlertDialog, AlertDialogAction, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { useToast } from "@/hooks/use-toast";
 import { createUser, loginWithEmailPassword } from "@/lib/auth";
+import { useAuth } from "@/hooks/use-auth";
 
-export default function LoginPage() {
+function LoginPageContent() {
   const router = useRouter();
   const { toast } = useToast();
+  const { user, loading } = useAuth();
 
   // Sign In State
   const [signInEmail, setSignInEmail] = useState('');
@@ -31,6 +34,13 @@ export default function LoginPage() {
   const [generatedCode, setGeneratedCode] = useState('');
   
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  useEffect(() => {
+    // If user is already logged in, redirect to home page
+    if (!loading && user) {
+      router.push('/home');
+    }
+  }, [user, loading, router]);
 
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -75,6 +85,15 @@ export default function LoginPage() {
   const closeDialogAndRedirect = () => {
     setShowCodeDialog(false);
     router.push('/home');
+  }
+
+  // Render a loading state or nothing while checking auth status
+  if (loading || user) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <p>Chargement...</p>
+      </div>
+    );
   }
 
   return (
@@ -165,5 +184,15 @@ export default function LoginPage() {
         </AlertDialogContent>
       </AlertDialog>
     </div>
+  );
+}
+
+import { AuthProvider } from "@/hooks/use-auth";
+
+export default function LoginPage() {
+  return (
+    <AuthProvider>
+      <LoginPageContent />
+    </AuthProvider>
   );
 }
