@@ -1,6 +1,6 @@
 
 import { db } from './firebase';
-import { collection, getDocs, query, orderBy, addDoc, serverTimestamp, where, doc, runTransaction, deleteDoc, updateDoc } from 'firebase/firestore';
+import { collection, getDocs, query, orderBy, addDoc, serverTimestamp, where, doc, runTransaction, deleteDoc, updateDoc, writeBatch } from 'firebase/firestore';
 import type { Donation } from './types';
 import { getAuth } from 'firebase/auth';
 
@@ -143,5 +143,25 @@ export async function toggleDonationFeaturedStatus(donationId: string, newStatus
     } catch (error) {
         console.error("Error updating donation feature status: ", error);
         throw new Error("Failed to update donation status.");
+    }
+}
+
+// --- New function for account deletion ---
+export async function deleteAllDonationsForUser(userId: string): Promise<void> {
+    const donationsCollection = collection(db, 'donations');
+    const q = query(donationsCollection, where('user.id', '==', userId));
+    
+    try {
+        const querySnapshot = await getDocs(q);
+        const batch = writeBatch(db);
+        
+        querySnapshot.forEach((doc) => {
+            batch.delete(doc.ref);
+        });
+        
+        await batch.commit();
+    } catch (error) {
+        console.error("Error deleting user's donations: ", error);
+        throw new Error("Failed to delete user's donations.");
     }
 }

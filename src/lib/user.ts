@@ -1,7 +1,8 @@
 
-import { doc, updateDoc, getDoc, collection, getDocs } from "firebase/firestore";
-import { getAuth, updateProfile } from "firebase/auth";
+import { doc, updateDoc, getDoc, collection, getDocs, deleteDoc } from "firebase/firestore";
+import { getAuth, updateProfile, deleteUser } from "firebase/auth";
 import { db } from './firebase';
+import { deleteAllDonationsForUser } from "./donations";
 
 export type UserData = {
     id: string;
@@ -22,16 +23,13 @@ export async function updateUserName(userId: string, newName: string): Promise<v
     }
 
     try {
-        // Update Firebase Auth profile
         await updateProfile(user, { displayName: newName });
         
-        // Update Firestore document
         const userRef = doc(db, 'users', userId);
         await updateDoc(userRef, {
             name: newName
         });
         
-        // No need to manage sessionStorage, onAuthStateChanged will handle the update
     } catch (error) {
         console.error("Error updating user name: ", error);
         throw new Error("Failed to update user name.");
@@ -49,6 +47,35 @@ export async function getUserData(userId: string) {
         return null;
     }
 }
+
+export async function deleteUserAccount(userId: string): Promise<void> {
+    const auth = getAuth();
+    const user = auth.currentUser;
+
+    if (!user || user.uid !== userId) {
+        throw new Error("User not found or mismatch.");
+    }
+
+    try {
+        // 1. Delete all donations by the user
+        await deleteAllDonationsForUser(userId);
+
+        // 2. Delete the user document from Firestore
+        const userRef = doc(db, 'users', userId);
+        await deleteDoc(userRef);
+
+        // 3. Delete the user from Firebase Authentication
+        await deleteUser(user);
+        
+    } catch (error: any) {
+        console.error("Error deleting user account: ", error);
+        if (error.code === 'auth/requires-recent-login') {
+            throw new Error("Cette opération est sensible et nécessite une ré-authentification. Veuillez vous déconnecter et vous reconnecter avant de réessayer.");
+        }
+        throw new Error("Failed to delete user account.");
+    }
+}
+
 
 // --- Admin Functions ---
 

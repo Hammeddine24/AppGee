@@ -1,3 +1,4 @@
+
 "use client"
 import { useState } from 'react';
 import { useAuth } from '@/hooks/use-auth';
@@ -12,9 +13,10 @@ import { Switch } from '@/components/ui/switch';
 import { Separator } from '@/components/ui/separator';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { useToast } from '@/hooks/use-toast';
-import { updateUserName } from '@/lib/user';
+import { updateUserName, deleteUserAccount } from '@/lib/user';
 import { useRouter } from 'next/navigation';
 import HomeLayout from '../home/layout';
+import { Loader2 } from 'lucide-react';
 
 const profileSchema = z.object({
   name: z.string().min(3, { message: "Le nom doit contenir au moins 3 caractères." }),
@@ -27,6 +29,7 @@ function SettingsPageContent() {
     const { toast } = useToast();
     const router = useRouter();
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [isDeleting, setIsDeleting] = useState(false);
 
     const form = useForm<ProfileFormValues>({
         resolver: zodResolver(profileSchema),
@@ -44,7 +47,6 @@ function SettingsPageContent() {
                 title: "Succès",
                 description: "Votre nom a été mis à jour.",
             });
-            // Note: A page reload might be needed to see the change in the header immediately
         } catch (error) {
             toast({
                 title: "Erreur",
@@ -56,13 +58,25 @@ function SettingsPageContent() {
         }
     };
     
-    const handleDeleteAccount = () => {
-        // This is a placeholder for the actual account deletion logic
-        console.log("Account deletion requested for user:", user?.uid);
-        toast({
-            title: "Action non implémentée",
-            description: "La suppression de compte sera bientôt disponible.",
-        });
+    const handleDeleteAccount = async () => {
+        if (!user) return;
+        setIsDeleting(true);
+        try {
+            await deleteUserAccount(user.uid);
+            toast({
+                title: "Compte supprimé",
+                description: "Votre compte et toutes vos données ont été supprimés.",
+            });
+            router.push('/login'); // Redirect to login page after deletion
+        } catch (error: any) {
+            toast({
+                title: "Erreur de suppression",
+                description: error.message || "Une erreur est survenue.",
+                variant: "destructive",
+            });
+        } finally {
+            setIsDeleting(false);
+        }
     }
 
     if (loading) {
@@ -111,7 +125,7 @@ function SettingsPageContent() {
                                 <Label htmlFor="email-notifications" className="font-medium">Notifications par e-mail</Label>
                                 <p className="text-sm text-muted-foreground">Recevoir des e-mails sur l'activité de votre compte.</p>
                             </div>
-                            <Switch id="email-notifications" />
+                            <Switch id="email-notifications" disabled />
                        </div>
                        <Separator />
                        <div className="flex items-center justify-between">
@@ -128,12 +142,12 @@ function SettingsPageContent() {
                 <Card className="border-destructive">
                     <CardHeader>
                         <CardTitle className="text-destructive">Zone de danger</CardTitle>
-                        <CardDescription>Ces actions sont irréversibles. Soyez prudent.</CardDescription>
+                        <CardDescription>Cette action est irréversible. Soyez prudent.</CardDescription>
                     </CardHeader>
                     <CardContent>
                        <AlertDialog>
                             <AlertDialogTrigger asChild>
-                                <Button variant="destructive">Supprimer mon compte</Button>
+                                <Button variant="destructive" disabled={isDeleting}>Supprimer mon compte</Button>
                             </AlertDialogTrigger>
                             <AlertDialogContent>
                                 <AlertDialogHeader>
@@ -144,7 +158,8 @@ function SettingsPageContent() {
                                 </AlertDialogHeader>
                                 <AlertDialogFooter>
                                     <AlertDialogCancel>Annuler</AlertDialogCancel>
-                                    <AlertDialogAction onClick={handleDeleteAccount} className="bg-destructive hover:bg-destructive/90">
+                                    <AlertDialogAction onClick={handleDeleteAccount} disabled={isDeleting} className="bg-destructive hover:bg-destructive/90">
+                                        {isDeleting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                                         Oui, supprimer mon compte
                                     </AlertDialogAction>
                                 </AlertDialogFooter>
