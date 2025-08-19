@@ -1,4 +1,4 @@
-import { Leaf, PlusCircle } from "lucide-react";
+import { Leaf, PlusCircle, Search } from "lucide-react";
 import Link from 'next/link';
 import { Button } from "@/components/ui/button";
 import { UserNav } from "@/components/user-nav";
@@ -14,6 +14,12 @@ export function Header() {
           </a>
         </div>
         <div className="flex items-center space-x-2">
+           <Button variant="ghost" size="icon" asChild>
+            <Link href="/search">
+              <Search className="h-5 w-5" />
+              <span className="sr-only">Rechercher</span>
+            </Link>
+          </Button>
           <Button asChild>
             <Link href="/new-donation">
               <PlusCircle className="mr-2 h-4 w-4" />
