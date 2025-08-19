@@ -29,6 +29,9 @@ export async function createUser(name: string, email: string, password: string):
       email: user.email,
       connectionCode: connectionCode,
       createdAt: new Date(),
+      plan: 'free',
+      donationCount: 0,
+      contactCount: 0,
     });
     
     // The onAuthStateChanged listener will pick up the new user state.

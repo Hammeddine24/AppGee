@@ -1,5 +1,6 @@
+
 import { db } from './firebase';
-import { collection, getDocs, query, orderBy, addDoc, serverTimestamp, where } from 'firebase/firestore';
+import { collection, getDocs, query, orderBy, addDoc, serverTimestamp, where, doc, runTransaction } from 'firebase/firestore';
 import type { Donation } from './types';
 import { getAuth } from 'firebase/auth';
 
@@ -44,26 +45,73 @@ export async function getDonationsByUser(userId: string): Promise<Donation[]> {
 type NewDonation = Omit<Donation, 'id' | 'user' | 'createdAt'>;
 
 export async function addDonation(donation: NewDonation): Promise<string> {
-  const auth = getAuth();
-  const user = auth.currentUser;
+    const auth = getAuth();
+    const user = auth.currentUser;
 
-  if (!user) {
-    throw new Error('User is not authenticated. Cannot add donation.');
-  }
-  
-  try {
-    const donationsCollection = collection(db, 'donations');
-    const newDocRef = await addDoc(donationsCollection, {
-      ...donation,
-      user: {
-        id: user.uid,
-        name: user.displayName || 'Utilisateur Anonyme',
-      },
-      createdAt: serverTimestamp(),
-    });
-    return newDocRef.id;
-  } catch (error) {
-    console.error("Error adding document: ", error);
-    throw new Error('Failed to add donation to database.');
-  }
+    if (!user) {
+        throw new Error('User is not authenticated. Cannot add donation.');
+    }
+
+    const userRef = doc(db, 'users', user.uid);
+    const donationCollection = collection(db, 'donations');
+
+    try {
+        const newDonationId = await runTransaction(db, async (transaction) => {
+            const userDoc = await transaction.get(userRef);
+            if (!userDoc.exists()) {
+                throw "Document does not exist!";
+            }
+
+            const currentDonationCount = userDoc.data().donationCount || 0;
+            const currentPlan = userDoc.data().plan || 'free';
+
+            if (currentPlan === 'free' && currentDonationCount >= 3) {
+                 throw new Error("Donation limit reached for free plan.");
+            }
+            
+            const newDonationRef = doc(donationCollection);
+            transaction.set(newDonationRef, {
+                ...donation,
+                user: {
+                    id: user.uid,
+                    name: user.displayName || 'Utilisateur Anonyme',
+                },
+                createdAt: serverTimestamp(),
+            });
+
+            transaction.update(userRef, { donationCount: currentDonationCount + 1 });
+            
+            return newDonationRef.id;
+        });
+
+        return newDonationId;
+    } catch (error) {
+        console.error("Error adding donation: ", error);
+        if(error instanceof Error && error.message.includes("limit reached")) {
+            throw new Error('Limite de dons atteinte. Veuillez passer au plan supérieur.');
+        }
+        throw new Error('Failed to add donation to database.');
+    }
+}
+
+
+export async function incrementContactCount(userId: string): Promise<void> {
+    if (!userId) {
+        throw new Error('User ID is required to increment contact count.');
+    }
+    const userRef = doc(db, 'users', userId);
+
+     try {
+        await runTransaction(db, async (transaction) => {
+            const userDoc = await transaction.get(userRef);
+            if (!userDoc.exists()) {
+                throw new Error("User document not found");
+            }
+            const currentContactCount = userDoc.data().contactCount || 0;
+            transaction.update(userRef, { contactCount: currentContactCount + 1 });
+        });
+    } catch (e) {
+        console.error("Transaction failed: ", e);
+        throw new Error('Failed to update contact count.');
+    }
 }

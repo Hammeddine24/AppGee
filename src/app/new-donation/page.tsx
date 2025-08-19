@@ -19,7 +19,8 @@ import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, For
 import { useToast } from "@/hooks/use-toast";
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import HomeLayout from '../home/layout';
-import { Loader2 } from 'lucide-react';
+import { Loader2, Zap } from 'lucide-react';
+import Link from 'next/link';
 
 const donationSchema = z.object({
   title: z.string().min(3, { message: "Le titre doit contenir au moins 3 caractères." }),
@@ -36,10 +37,12 @@ const donationSchema = z.object({
 
 type DonationFormValues = z.infer<typeof donationSchema>;
 
+const FREE_DONATION_LIMIT = 3;
+
 function NewDonationPageContent() {
   const router = useRouter();
   const { toast } = useToast();
-  const { user } = useAuth();
+  const { user, userData, refreshUserData } = useAuth();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
 
@@ -51,6 +54,10 @@ function NewDonationPageContent() {
       contact: '',
     }
   });
+
+  const currentPlan = userData?.plan || 'free';
+  const donationCount = userData?.donationCount || 0;
+  const hasReachedLimit = currentPlan === 'free' && donationCount >= FREE_DONATION_LIMIT;
   
   const handleImageChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -99,6 +106,15 @@ function NewDonationPageContent() {
       return;
     }
 
+    if (hasReachedLimit) {
+        toast({
+            title: "Limite atteinte",
+            description: "Vous avez atteint votre limite de dons gratuits. Passez au plan supérieur !",
+            variant: "destructive",
+        });
+        return;
+    }
+
     setIsSubmitting(true);
 
     try {
@@ -128,6 +144,7 @@ function NewDonationPageContent() {
       await addDonation(newDonation);
       
       triggerDonationsUpdate();
+      refreshUserData();
 
       toast({
         title: "Succès!",
@@ -159,90 +176,106 @@ function NewDonationPageContent() {
           </CardDescription>
         </CardHeader>
         <CardContent>
+            {hasReachedLimit && (
+                 <Alert variant="destructive" className="mb-6">
+                    <Zap className="h-4 w-4" />
+                    <AlertTitle>Limite de dons gratuits atteinte</AlertTitle>
+                    <AlertDescription>
+                        Vous avez publié {donationCount} / {FREE_DONATION_LIMIT} dons. Pour continuer à publier, veuillez passer au plan Premium.
+                        <Button asChild variant="link" className="p-0 h-auto ml-1">
+                            <Link href="/plan">Voir les plans</Link>
+                        </Button>
+                    </AlertDescription>
+                </Alert>
+            )}
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-              <FormField
-                control={form.control}
-                name="title"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Titre</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Ex: Fauteuil vintage en cuir" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="description"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Description</FormLabel>
-                    <FormControl>
-                      <Textarea
-                        placeholder="Décrivez l'état de votre objet, ses dimensions, etc."
-                        className="resize-none"
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                  control={form.control}
-                  name="image"
-                  render={({ field }) => (
-                  <FormItem>
-                      <FormLabel>Photo de l'objet</FormLabel>
-                      <FormControl>
-                      <Input 
-                          type="file" 
-                          accept="image/*"
-                          {...imageRef}
-                          onChange={(e) => {
-                            field.onChange(e.target.files);
-                            handleImageChange(e);
-                          }}
-                      />
-                      </FormControl>
-                      <FormDescription>
-                        Une belle image aide votre objet à trouver preneur plus vite.
-                      </FormDescription>
-                      <FormMessage />
-                  </FormItem>
-                  )}
-              />
-               {imagePreview && (
-                <div className="mt-4">
-                  <p className="text-sm font-medium mb-2">Aperçu de l'image :</p>
-                  <Image src={imagePreview} alt="Aperçu" width={200} height={200} className="rounded-md object-cover" />
+              <fieldset disabled={isSubmitting || hasReachedLimit}>
+                <div className="space-y-6">
+                    <FormField
+                        control={form.control}
+                        name="title"
+                        render={({ field }) => (
+                        <FormItem>
+                            <FormLabel>Titre</FormLabel>
+                            <FormControl>
+                            <Input placeholder="Ex: Fauteuil vintage en cuir" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                        </FormItem>
+                        )}
+                    />
+                    <FormField
+                        control={form.control}
+                        name="description"
+                        render={({ field }) => (
+                        <FormItem>
+                            <FormLabel>Description</FormLabel>
+                            <FormControl>
+                            <Textarea
+                                placeholder="Décrivez l'état de votre objet, ses dimensions, etc."
+                                className="resize-none"
+                                {...field}
+                            />
+                            </FormControl>
+                            <FormMessage />
+                        </FormItem>
+                        )}
+                    />
+                    <FormField
+                        control={form.control}
+                        name="image"
+                        render={({ field }) => (
+                        <FormItem>
+                            <FormLabel>Photo de l'objet</FormLabel>
+                            <FormControl>
+                            <Input 
+                                type="file" 
+                                accept="image/*"
+                                {...imageRef}
+                                onChange={(e) => {
+                                    field.onChange(e.target.files);
+                                    handleImageChange(e);
+                                }}
+                            />
+                            </FormControl>
+                            <FormDescription>
+                                Une belle image aide votre objet à trouver preneur plus vite.
+                            </FormDescription>
+                            <FormMessage />
+                        </FormItem>
+                        )}
+                    />
+                    {imagePreview && (
+                        <div className="mt-4">
+                        <p className="text-sm font-medium mb-2">Aperçu de l'image :</p>
+                        <Image src={imagePreview} alt="Aperçu" width={200} height={200} className="rounded-md object-cover" />
+                        </div>
+                    )}
+                    <FormField
+                        control={form.control}
+                        name="contact"
+                        render={({ field }) => (
+                        <FormItem>
+                            <FormLabel>Information de contact</FormLabel>
+                            <FormControl>
+                            <Input placeholder="Ex: monemail@exemple.com ou 0612345678" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                        </FormItem>
+                        )}
+                    />
                 </div>
-              )}
-              <FormField
-                control={form.control}
-                name="contact"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Information de contact</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Ex: monemail@exemple.com ou 0612345678" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+              </fieldset>
                {!user && (
-                  <Alert variant="destructive">
+                  <Alert variant="destructive" className="mt-6">
                     <AlertTitle>Attention</AlertTitle>
                     <AlertDescription>
                       Vous devez être connecté pour publier un don.
                     </AlertDescription>
                   </Alert>
                 )}
-              <Button type="submit" className="w-full" disabled={isSubmitting || !user}>
+              <Button type="submit" className="w-full" disabled={isSubmitting || !user || hasReachedLimit}>
                 {isSubmitting ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -265,5 +298,3 @@ export default function NewDonationPage() {
         </HomeLayout>
     )
 }
-
-    

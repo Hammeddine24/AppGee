@@ -32,8 +32,6 @@ export function UserNav() {
   }
   
   if (!isLoggedIn || !user) {
-    // This case should ideally not be hit if the component is used in a protected layout,
-    // but it's a good safeguard.
     return null;
   }
 
@@ -60,8 +58,11 @@ export function UserNav() {
           <DropdownMenuItem asChild>
             <Link href="/profile">Profil</Link>
           </DropdownMenuItem>
-          <DropdownMenuItem asChild>
+           <DropdownMenuItem asChild>
             <Link href="/my-donations">Mes dons</Link>
+          </DropdownMenuItem>
+          <DropdownMenuItem asChild>
+            <Link href="/plan">Mon Plan</Link>
           </DropdownMenuItem>
           <DropdownMenuItem asChild>
             <Link href="/settings">Paramètres</Link>

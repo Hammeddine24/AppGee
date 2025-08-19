@@ -1,12 +1,14 @@
+
 "use client"
 import { useAuth } from '@/hooks/use-auth';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Skeleton } from '@/components/ui/skeleton';
 import HomeLayout from '../home/layout';
+import { Badge } from '@/components/ui/badge';
 
 function ProfilePageContent() {
-    const { user, loading, connectionCode } = useAuth();
+    const { user, userData, loading } = useAuth();
 
     if (loading) {
         return (
@@ -40,6 +42,9 @@ function ProfilePageContent() {
         );
     }
     
+    const currentPlan = userData?.plan || 'free';
+    const connectionCode = userData?.connectionCode || 'N/A';
+    
     return (
         <div className="container mx-auto py-8 px-4 sm:px-6 lg:px-8 flex justify-center">
             <Card className="w-full max-w-lg">
@@ -47,13 +52,18 @@ function ProfilePageContent() {
                     <Avatar className="h-24 w-24 mb-4">
                         <AvatarFallback>{user.displayName?.charAt(0) || 'U'}</AvatarFallback>
                     </Avatar>
-                    <CardTitle className="text-2xl">{user.displayName}</CardTitle>
+                    <div className="flex items-center gap-2">
+                        <CardTitle className="text-2xl">{user.displayName}</CardTitle>
+                        <Badge variant={currentPlan === 'free' ? 'secondary' : 'default'}>
+                            {currentPlan === 'free' ? 'Plan Gratuit' : 'Premium'}
+                        </Badge>
+                    </div>
                     <CardDescription>{user.email}</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
                     <div>
                         <h3 className="text-sm font-medium text-muted-foreground">Votre code de connexion</h3>
-                        <p className="text-lg font-semibold bg-muted p-2 rounded-md text-center tracking-widest mt-1">{connectionCode || 'N/A'}</p>
+                        <p className="text-lg font-semibold bg-muted p-2 rounded-md text-center tracking-widest mt-1">{connectionCode}</p>
                         <p className="text-xs text-muted-foreground mt-1">Conservez ce code précieusement, il est nécessaire pour vous connecter.</p>
                     </div>
                 </CardContent>
