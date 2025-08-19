@@ -19,7 +19,6 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-  AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
 import { useState } from 'react';
 import { Zap } from 'lucide-react';
@@ -31,12 +30,37 @@ interface DonationCardProps {
 
 const FREE_CONTACT_LIMIT = 3;
 
+function isPhoneNumber(contact: string) {
+  // Simple check for digits, possibly with spaces or a + at the start
+  return /^\+?\d[\d\s]+$/.test(contact);
+}
+
+function isEmail(contact: string) {
+  return contact.includes('@');
+}
+
+
 export function DonationCard({ donation }: DonationCardProps) {
   const { user, userData, refreshUserData, isLoggedIn } = useAuth();
   const { toast } = useToast();
   const router = useRouter();
   const [showUpgradeDialog, setShowUpgradeDialog] = useState(false);
 
+  const initiateContact = () => {
+    if (isPhoneNumber(donation.contact)) {
+      window.location.href = `tel:${donation.contact.replace(/\s/g, '')}`;
+    } else if (isEmail(donation.contact)) {
+      window.location.href = `mailto:${donation.contact}`;
+    } else {
+      // Fallback for other contact types, maybe just copy to clipboard
+      navigator.clipboard.writeText(donation.contact);
+      toast({
+        title: "Contact copié",
+        description: "L'information de contact a été copiée dans le presse-papiers.",
+      });
+    }
+  };
+  
   const handleContact = async () => {
     if (!isLoggedIn || !user || !userData) {
       toast({
@@ -52,7 +76,7 @@ export function DonationCard({ donation }: DonationCardProps) {
     
     // Allow contact if user is on a paid plan
     if (currentPlan !== 'free') {
-        // The AlertDialog will open and show the contact info
+        initiateContact();
         return;
     }
     
@@ -66,6 +90,7 @@ export function DonationCard({ donation }: DonationCardProps) {
     try {
         await incrementContactCount(user.uid);
         refreshUserData(); // Refresh user data to reflect new count
+        initiateContact();
     } catch (error) {
         console.error("Failed to increment contact count:", error);
         toast({
@@ -106,25 +131,7 @@ export function DonationCard({ donation }: DonationCardProps) {
           </Avatar>
           <span className="text-sm font-medium">{donation.user.name}</span>
         </div>
-        <AlertDialog>
-          <AlertDialogTrigger asChild>
-            <Button variant="outline" onClick={handleContact}>Contacter</Button>
-          </AlertDialogTrigger>
-          <AlertDialogContent>
-            <AlertDialogHeader>
-              <AlertDialogTitle>Contacter {donation.user.name}</AlertDialogTitle>
-              <AlertDialogDescription>
-                Utilisez les informations ci-dessous pour contacter le donateur.
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-            <div className="my-4 p-4 bg-muted rounded-md text-center">
-                <p className="text-lg font-semibold">{donation.contact}</p>
-            </div>
-            <AlertDialogFooter>
-              <AlertDialogAction>Fermer</AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
+         <Button variant="outline" onClick={handleContact}>Contacter</Button>
       </CardFooter>
     </Card>
 
