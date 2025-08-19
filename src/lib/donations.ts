@@ -1,6 +1,6 @@
 
 import { db } from './firebase';
-import { collection, getDocs, query, orderBy, addDoc, serverTimestamp, where, doc, runTransaction } from 'firebase/firestore';
+import { collection, getDocs, query, orderBy, addDoc, serverTimestamp, where, doc, runTransaction, deleteDoc, updateDoc } from 'firebase/firestore';
 import type { Donation } from './types';
 import { getAuth } from 'firebase/auth';
 
@@ -19,6 +19,7 @@ const mapDocToDonation = (doc: any): Donation => {
         name: data.user.name,
       },
       createdAt: createdAt,
+      isFeatured: data.isFeatured || false,
     } as Donation;
 }
 
@@ -42,9 +43,15 @@ export async function getDonationsByUser(userId: string): Promise<Donation[]> {
 }
 
 
-type NewDonation = Omit<Donation, 'id' | 'user' | 'createdAt'>;
+type NewDonationData = {
+  title: string;
+  description: string;
+  imageUrl: string;
+  imageHint: string;
+  contact: string;
+};
 
-export async function addDonation(donation: NewDonation): Promise<string> {
+export async function addDonation(donation: NewDonationData): Promise<string> {
     const auth = getAuth();
     const user = auth.currentUser;
 
@@ -77,6 +84,7 @@ export async function addDonation(donation: NewDonation): Promise<string> {
                     name: user.displayName || 'Utilisateur Anonyme',
                 },
                 createdAt: serverTimestamp(),
+                isFeatured: false, // Default value for new donations
             });
 
             transaction.update(userRef, { donationCount: currentDonationCount + 1 });
@@ -113,5 +121,27 @@ export async function incrementContactCount(userId: string): Promise<void> {
     } catch (e) {
         console.error("Transaction failed: ", e);
         throw new Error('Failed to update contact count.');
+    }
+}
+
+// --- Admin Functions ---
+
+export async function deleteDonation(donationId: string): Promise<void> {
+    const donationRef = doc(db, 'donations', donationId);
+    try {
+        await deleteDoc(donationRef);
+    } catch (error) {
+        console.error("Error deleting donation: ", error);
+        throw new Error("Failed to delete donation.");
+    }
+}
+
+export async function toggleDonationFeaturedStatus(donationId: string, newStatus: boolean): Promise<void> {
+    const donationRef = doc(db, 'donations', donationId);
+    try {
+        await updateDoc(donationRef, { isFeatured: newStatus });
+    } catch (error) {
+        console.error("Error updating donation feature status: ", error);
+        throw new Error("Failed to update donation status.");
     }
 }

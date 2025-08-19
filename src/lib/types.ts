@@ -1,3 +1,4 @@
+
 export type Donation = {
   id: string;
   title: string;
@@ -10,4 +11,5 @@ export type Donation = {
     name: string;
   };
   createdAt: string; // Should be ISO string date
+  isFeatured?: boolean;
 };
