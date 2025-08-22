@@ -14,20 +14,17 @@ import { useToast } from '@/hooks/use-toast';
 import { useRouter } from 'next/navigation';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import HomeLayout from '../home/layout';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 
-// IMPORTANT: Ajoutez les adresses e-mail des administrateurs ici
-const ADMIN_EMAILS = ['florentinshammeddine@gmail.com', 'admin@example.com', 'superadmin@example.com'];
+const ADMIN_ACCESS_CODE = 'Gee2025';
 
 function AdminDashboard() {
-  const { user, loading: authLoading } = useAuth();
-  const router = useRouter();
   const { toast } = useToast();
 
   const [users, setUsers] = useState<UserData[]>([]);
   const [donations, setDonations] = useState<Donation[]>([]);
   const [loadingData, setLoadingData] = useState(true);
-
-  const isUserAdmin = user && ADMIN_EMAILS.includes(user.email || '');
 
   const fetchData = async () => {
     try {
@@ -47,20 +44,14 @@ function AdminDashboard() {
   };
 
   useEffect(() => {
-    if (!authLoading) {
-      if (!isUserAdmin) {
-        router.push('/home'); // Rediriger si l'utilisateur n'est pas un admin
-      } else {
-        fetchData();
-      }
-    }
-  }, [user, authLoading, isUserAdmin, router]);
+    fetchData();
+  }, []);
   
   const handlePlanChange = async (userId: string, newPlan: 'free' | 'premium') => {
     try {
         await updateUserPlan(userId, newPlan);
         toast({ title: "Succès", description: "Le plan de l'utilisateur a été mis à jour." });
-        fetchData(); // Recharger les données
+        fetchData();
     } catch (error) {
         toast({ title: "Erreur", description: "Impossible de mettre à jour le plan.", variant: "destructive" });
     }
@@ -70,7 +61,7 @@ function AdminDashboard() {
     try {
         await deleteDonation(donationId);
         toast({ title: "Succès", description: "Le don a été supprimé." });
-        fetchData(); // Recharger les données
+        fetchData();
     } catch (error) {
         toast({ title: "Erreur", description: "Impossible de supprimer le don.", variant: "destructive" });
     }
@@ -80,14 +71,13 @@ function AdminDashboard() {
      try {
         await toggleDonationFeaturedStatus(donationId, !currentStatus);
         toast({ title: "Succès", description: "Le statut du don a été modifié." });
-        fetchData(); // Recharger les données
+        fetchData();
     } catch (error) {
         toast({ title: "Erreur", description: "Impossible de modifier le statut du don.", variant: "destructive" });
     }
   }
 
-
-  if (authLoading || loadingData || !isUserAdmin) {
+  if (loadingData) {
     return (
       <div className="container mx-auto py-8 text-center">
         <p>Chargement du tableau de bord...</p>
@@ -203,10 +193,59 @@ function AdminDashboard() {
   );
 }
 
+function AdminAccessGate() {
+    const [inputCode, setInputCode] = useState('');
+    const [accessGranted, setAccessGranted] = useState(false);
+    const [error, setError] = useState('');
+    
+    const handleLogin = (e: React.FormEvent) => {
+        e.preventDefault();
+        if (inputCode === ADMIN_ACCESS_CODE) {
+            setAccessGranted(true);
+            setError('');
+        } else {
+            setError('Code d\'accès incorrect.');
+        }
+    }
+
+    if (accessGranted) {
+        return <AdminDashboard />;
+    }
+
+    return (
+        <div className="flex items-center justify-center min-h-[calc(100vh-4rem)]">
+            <Card className="w-full max-w-sm">
+                <CardHeader>
+                    <CardTitle>Accès Administrateur</CardTitle>
+                </CardHeader>
+                <CardContent>
+                    <form onSubmit={handleLogin} className="space-y-4">
+                        <div className="space-y-2">
+                            <Label htmlFor="access-code">Code d'accès</Label>
+                            <Input
+                                id="access-code"
+                                type="password"
+                                value={inputCode}
+                                onChange={(e) => setInputCode(e.target.value)}
+                                required
+                            />
+                        </div>
+                        {error && <p className="text-sm text-destructive">{error}</p>}
+                        <Button type="submit" className="w-full">
+                            Entrer
+                        </Button>
+                    </form>
+                </CardContent>
+            </Card>
+        </div>
+    )
+}
+
+
 export default function AdminPage() {
     return (
         <HomeLayout>
-            <AdminDashboard />
+            <AdminAccessGate />
         </HomeLayout>
     )
 }
