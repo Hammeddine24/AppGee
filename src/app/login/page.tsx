@@ -66,10 +66,14 @@ function LoginPageContent() {
     setIsSubmitting(true);
     try {
       const { user, connectionCode } = await createUser(signUpName, signUpEmail);
-      setGeneratedCode(connectionCode);
-      setShowCodeDialog(true);
-      // After sign up, Firebase automatically signs the user in.
-      // We'll show them their code and then redirect.
+      if(user && connectionCode) {
+        setGeneratedCode(connectionCode);
+        setShowCodeDialog(true);
+        // Firebase signs the user in automatically after creation.
+        // We will show them their code, and the dialog's button will handle the redirect.
+      } else {
+         throw new Error("La création de l'utilisateur a échoué.");
+      }
     } catch (error: any) {
       toast({
         title: "Erreur d'inscription",
@@ -111,7 +115,7 @@ function LoginPageContent() {
               <CardHeader>
                 <CardTitle className="text-2xl">Bienvenue !</CardTitle>
                 <CardDescription>
-                  Connectez-vous avec votre e-mail et votre code de connexion (fourni lors de l'inscription).
+                  Connectez-vous avec votre e-mail et votre code de connexion.
                 </CardDescription>
               </CardHeader>
               <CardContent>
