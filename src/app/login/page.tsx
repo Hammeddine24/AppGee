@@ -111,7 +111,7 @@ function LoginPageContent() {
               <CardHeader>
                 <CardTitle className="text-2xl">Bienvenue !</CardTitle>
                 <CardDescription>
-                  Connectez-vous avec votre e-mail et votre code de connexion.
+                  Connectez-vous avec votre e-mail et votre code de connexion (fourni lors de l'inscription).
                 </CardDescription>
               </CardHeader>
               <CardContent>
