@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Leaf } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -28,9 +28,11 @@ function LoginPageContent() {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // If user is already logged in, redirect to home page
-  if (!loading && user) {
+  useEffect(() => {
+    if (!loading && user) {
       router.push('/home');
-  }
+    }
+  }, [user, loading, router]);
 
 
   const handleSignIn = async (e: React.FormEvent) => {
