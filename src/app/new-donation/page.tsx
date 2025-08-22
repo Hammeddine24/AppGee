@@ -19,8 +19,7 @@ import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, For
 import { useToast } from "@/hooks/use-toast";
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import HomeLayout from '../home/layout';
-import { Loader2, Zap } from 'lucide-react';
-import Link from 'next/link';
+import { Loader2 } from 'lucide-react';
 
 const donationSchema = z.object({
   title: z.string().min(3, { message: "Le titre doit contenir au moins 3 caractères." }),
@@ -37,12 +36,10 @@ const donationSchema = z.object({
 
 type DonationFormValues = z.infer<typeof donationSchema>;
 
-const FREE_DONATION_LIMIT = 3;
-
 function NewDonationPageContent() {
   const router = useRouter();
   const { toast } = useToast();
-  const { user, userData, refreshUserData } = useAuth();
+  const { user } = useAuth();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
 
@@ -54,10 +51,6 @@ function NewDonationPageContent() {
       contact: '',
     }
   });
-
-  const currentPlan = userData?.plan || 'free';
-  const donationCount = userData?.donationCount || 0;
-  const hasReachedLimit = currentPlan === 'free' && donationCount >= FREE_DONATION_LIMIT;
   
   const handleImageChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -106,15 +99,6 @@ function NewDonationPageContent() {
       return;
     }
 
-    if (hasReachedLimit) {
-        toast({
-            title: "Limite atteinte",
-            description: "Vous avez atteint votre limite de dons gratuits. Passez au plan supérieur !",
-            variant: "destructive",
-        });
-        return;
-    }
-
     setIsSubmitting(true);
 
     try {
@@ -144,7 +128,6 @@ function NewDonationPageContent() {
       await addDonation(newDonation);
       
       triggerDonationsUpdate();
-      refreshUserData();
 
       toast({
         title: "Succès!",
@@ -172,25 +155,13 @@ function NewDonationPageContent() {
         <CardHeader>
           <CardTitle className="text-2xl">Publier un nouveau don</CardTitle>
           <CardDescription>
-            Remplissez les informations ci-dessous pour donner une nouvelle vie à votre objet.
+            Remplissez les informations ci-dessous pour donner une nouvelle vie à votre objet. Les dons sont gratuits et illimités !
           </CardDescription>
         </CardHeader>
         <CardContent>
-            {hasReachedLimit && (
-                 <Alert variant="destructive" className="mb-6">
-                    <Zap className="h-4 w-4" />
-                    <AlertTitle>Limite de dons gratuits atteinte</AlertTitle>
-                    <AlertDescription>
-                        Vous avez publié {donationCount} / {FREE_DONATION_LIMIT} dons. Pour continuer à publier, veuillez passer au plan Premium.
-                        <Button asChild variant="link" className="p-0 h-auto ml-1">
-                            <Link href="/plan">Voir les plans</Link>
-                        </Button>
-                    </AlertDescription>
-                </Alert>
-            )}
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-              <fieldset disabled={isSubmitting || hasReachedLimit}>
+              <fieldset disabled={isSubmitting}>
                 <div className="space-y-6">
                     <FormField
                         control={form.control}
@@ -275,7 +246,7 @@ function NewDonationPageContent() {
                     </AlertDescription>
                   </Alert>
                 )}
-              <Button type="submit" className="w-full" disabled={isSubmitting || !user || hasReachedLimit}>
+              <Button type="submit" className="w-full" disabled={isSubmitting || !user}>
                 {isSubmitting ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />

@@ -59,47 +59,17 @@ export async function addDonation(donation: NewDonationData): Promise<string> {
         throw new Error('User is not authenticated. Cannot add donation.');
     }
 
-    const userRef = doc(db, 'users', user.uid);
-    const donationCollection = collection(db, 'donations');
-
-    try {
-        const newDonationId = await runTransaction(db, async (transaction) => {
-            const userDoc = await transaction.get(userRef);
-            if (!userDoc.exists()) {
-                throw "Document does not exist!";
-            }
-
-            const currentDonationCount = userDoc.data().donationCount || 0;
-            const currentPlan = userDoc.data().plan || 'free';
-
-            if (currentPlan === 'free' && currentDonationCount >= 3) {
-                 throw new Error("Donation limit reached for free plan.");
-            }
-            
-            const newDonationRef = doc(donationCollection);
-            transaction.set(newDonationRef, {
-                ...donation,
-                user: {
-                    id: user.uid,
-                    name: user.displayName || 'Utilisateur Anonyme',
-                },
-                createdAt: serverTimestamp(),
-                isFeatured: false, // Default value for new donations
-            });
-
-            transaction.update(userRef, { donationCount: currentDonationCount + 1 });
-            
-            return newDonationRef.id;
-        });
-
-        return newDonationId;
-    } catch (error) {
-        console.error("Error adding donation: ", error);
-        if(error instanceof Error && error.message.includes("limit reached")) {
-            throw new Error('Limite de dons atteinte. Veuillez passer au plan supérieur.');
-        }
-        throw new Error('Failed to add donation to database.');
-    }
+    const newDonationRef = await addDoc(collection(db, 'donations'), {
+         ...donation,
+        user: {
+            id: user.uid,
+            name: user.displayName || 'Utilisateur Anonyme',
+        },
+        createdAt: serverTimestamp(),
+        isFeatured: false,
+    });
+    
+    return newDonationRef.id;
 }
 
 

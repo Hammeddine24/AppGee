@@ -7,21 +7,77 @@ import Autoplay from "embla-carousel-autoplay"
 import { useDonations } from '@/hooks/use-donations';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { Card, CardContent } from '@/components/ui/card';
+import { Gift, PhoneOutgoing } from 'lucide-react';
 
 export default function HomePage() {
   const { donations, loading } = useDonations();
 
-  const plugin = React.useRef(
+  const autoplayPlugin = React.useRef(
+    Autoplay({ delay: 5000, stopOnInteraction: true })
+  )
+  
+  const donationsAutoplayPlugin = React.useRef(
     Autoplay({ delay: 3000, stopOnInteraction: true })
   )
 
   const shuffledDonations = useMemo(() => {
-    // Crée une copie du tableau et le mélange
     return [...donations].sort(() => Math.random() - 0.5);
   }, [donations]);
 
   return (
     <div className="container mx-auto py-8 px-4 sm:px-6 lg:px-8">
+      
+      {/* Section Nouveautés Animée */}
+      <section className="mb-12">
+        <Carousel
+          plugins={[autoplayPlugin.current]}
+          className="w-full"
+          onMouseEnter={autoplayPlugin.current.stop}
+          onMouseLeave={autoplayPlugin.current.reset}
+          opts={{
+              align: "start",
+              loop: true,
+          }}
+        >
+          <CarouselContent>
+            {/* Bannière 1: Dons Gratuits */}
+            <CarouselItem>
+              <Card className="bg-primary/10 border-primary/30 overflow-hidden">
+                <CardContent className="p-6 flex flex-col md:flex-row items-center gap-6">
+                  <div className="bg-primary text-primary-foreground rounded-full p-4">
+                    <Gift className="h-10 w-10" />
+                  </div>
+                  <div>
+                    <h3 className="text-xl font-bold text-primary-foreground/90">Les dons sont 100% gratuits !</h3>
+                    <p className="text-primary-foreground/80 mt-1">Publiez autant de dons que vous le souhaitez, sans aucune limite et sans jamais payer.</p>
+                  </div>
+                </CardContent>
+              </Card>
+            </CarouselItem>
+            
+            {/* Bannière 2: Limites de Contact */}
+            <CarouselItem>
+              <Card className="bg-accent/10 border-accent/30 overflow-hidden">
+                 <CardContent className="p-6 flex flex-col md:flex-row items-center gap-6">
+                  <div className="bg-accent text-accent-foreground rounded-full p-4">
+                    <PhoneOutgoing className="h-10 w-10" />
+                  </div>
+                  <div>
+                    <h3 className="text-xl font-bold text-accent-foreground/90">3 contacts offerts pour commencer !</h3>
+                    <p className="text-accent-foreground/80 mt-1">
+                      Après vos 3 contacts gratuits, passez au Premium pour seulement 1500 FCFA/mois et contactez en illimité.
+                    </p>
+                  </div>
+                </CardContent>
+              </Card>
+            </CarouselItem>
+          </CarouselContent>
+          <CarouselPrevious className="ml-12 hidden sm:flex" />
+          <CarouselNext className="mr-12 hidden sm:flex" />
+        </Carousel>
+      </section>
+
       {/* Section des dons récents */}
       <section className="mb-12">
           <h2 className="text-3xl font-bold mb-6">Dons récents</h2>
@@ -47,10 +103,10 @@ export default function HomePage() {
             </Alert>
           ) : (
             <Carousel
-                plugins={[plugin.current]}
+                plugins={[donationsAutoplayPlugin.current]}
                 className="w-full"
-                onMouseEnter={plugin.current.stop}
-                onMouseLeave={plugin.current.reset}
+                onMouseEnter={donationsAutoplayPlugin.current.stop}
+                onMouseLeave={donationsAutoplayPlugin.current.reset}
                 opts={{
                     align: "start",
                     loop: true,

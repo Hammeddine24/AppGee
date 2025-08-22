@@ -22,7 +22,8 @@ function PlanPageContent() {
     const contactCount = userData?.contactCount || 0;
     const currentPlan = userData?.plan || 'free';
     
-    const donationProgress = (donationCount / FREE_DONATION_LIMIT) * 100;
+    // Pour le plan gratuit, le nombre de dons est illimité, donc la barre de progression n'est plus pertinente.
+    // Nous la gardons pour les contacts.
     const contactProgress = (contactCount / FREE_CONTACT_LIMIT) * 100;
 
     if (loading) {
@@ -76,19 +77,20 @@ function PlanPageContent() {
                     </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-8">
-                    {currentPlan === 'free' ? (
-                        <>
-                            <div>
-                                <h3 className="text-lg font-semibold mb-2">Vos dons publiés</h3>
-                                <Progress value={donationProgress} className="w-full mb-1" />
-                                <p className="text-sm text-muted-foreground">{donationCount} / {FREE_DONATION_LIMIT} dons gratuits utilisés</p>
-                            </div>
+                     {currentPlan === 'free' ? (
+                         <>
+                            <Alert>
+                                <AlertTitle>Dons illimités et gratuits !</AlertTitle>
+                                <AlertDescription>
+                                    Vous pouvez publier autant de dons que vous le souhaitez.
+                                </AlertDescription>
+                            </Alert>
                             <div>
                                 <h3 className="text-lg font-semibold mb-2">Vos contacts effectués</h3>
                                 <Progress value={contactProgress} className="w-full mb-1" />
                                 <p className="text-sm text-muted-foreground">{contactCount} / {FREE_CONTACT_LIMIT} contacts gratuits utilisés</p>
                             </div>
-                        </>
+                         </>
                     ) : (
                          <Alert variant="default" className="bg-green-50 border-green-200">
                             <AlertTitle className="text-green-800">Plan Premium</AlertTitle>
@@ -102,7 +104,7 @@ function PlanPageContent() {
                 <CardFooter className="flex-col items-start gap-4 border-t pt-6">
                     <h3 className="text-lg font-bold">Passez au Premium</h3>
                     <p className="text-muted-foreground">
-                       Pour 1500 FCFA/mois, publiez des dons et contactez des utilisateurs en illimité !
+                       Pour 1500 FCFA/mois, contactez des utilisateurs en illimité !
                     </p>
                     <Button asChild className="w-full bg-green-600 hover:bg-green-700 text-white">
                         <Link href={WHATSAPP_LINK} target="_blank">
