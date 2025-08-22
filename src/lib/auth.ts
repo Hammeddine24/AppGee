@@ -22,14 +22,14 @@ function generateConnectionCode(length: number = 6): string {
   return result;
 }
 
-export async function createUser(name: string, email: string, password:string): Promise<{ user: User; connectionCode: string; }> {
+export async function createUser(name: string, email: string): Promise<{ user: User; connectionCode: string; }> {
   try {
-    const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+    const connectionCode = generateConnectionCode();
+    // Use the connection code as the password for Firebase Auth
+    const userCredential = await createUserWithEmailAndPassword(auth, email, connectionCode);
     const user = userCredential.user;
 
     await updateProfile(user, { displayName: name });
-
-    const connectionCode = generateConnectionCode();
 
     await setDoc(doc(db, "users", user.uid), {
       name: name,
@@ -41,29 +41,25 @@ export async function createUser(name: string, email: string, password:string): 
       contactCount: 0,
     });
     
-    // The onAuthStateChanged listener will pick up the new user state.
-    // We can return the user from the credential directly.
     return { user, connectionCode };
   } catch (error: any) {
     if (error.code === 'auth/email-already-in-use') {
       throw new Error('Cette adresse e-mail est déjà utilisée.');
-    }
-    if (error.code === 'auth/weak-password') {
-      throw new Error('Le mot de passe doit contenir au moins 6 caractères.');
     }
     console.error("Error creating user:", error);
     throw new Error("Impossible de créer le compte.");
   }
 }
 
-export async function loginWithEmailPassword(email: string, password: string): Promise<User | null> {
+export async function loginWithConnectionCode(email: string, code: string): Promise<User | null> {
   try {
-    const userCredential = await signInWithEmailAndPassword(auth, email, password);
+    // The connection code is used as the password
+    const userCredential = await signInWithEmailAndPassword(auth, email, code);
     return userCredential.user;
   } catch (error: any) {
-    console.error("Error logging in with email/password:", error);
+    console.error("Error logging in with connection code:", error);
     if (error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password' || error.code === 'auth/invalid-credential') {
-        throw new Error("Email ou mot de passe invalide.");
+        throw new Error("Email ou code de connexion invalide.");
     }
     throw new Error("Une erreur s'est produite lors de la connexion.");
   }

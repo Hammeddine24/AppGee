@@ -12,7 +12,7 @@ import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AlertDialog, AlertDialogAction, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { useToast } from "@/hooks/use-toast";
-import { createUser, loginWithEmailPassword } from "@/lib/auth";
+import { createUser, loginWithConnectionCode } from "@/lib/auth";
 import { useAuth } from "@/hooks/use-auth";
 
 function LoginPageContent() {
@@ -22,12 +22,11 @@ function LoginPageContent() {
 
   // Sign In State
   const [signInEmail, setSignInEmail] = useState('');
-  const [signInPassword, setSignInPassword] = useState('');
+  const [connectionCode, setConnectionCode] = useState('');
 
   // Sign Up State
   const [signUpName, setSignUpName] = useState('');
   const [signUpEmail, setSignUpEmail] = useState('');
-  const [signUpPassword, setSignUpPassword] = useState('');
   
   // Dialog State
   const [showCodeDialog, setShowCodeDialog] = useState(false);
@@ -46,7 +45,7 @@ function LoginPageContent() {
     e.preventDefault();
     setIsSubmitting(true);
     try {
-      const user = await loginWithEmailPassword(signInEmail, signInPassword);
+      const user = await loginWithConnectionCode(signInEmail, connectionCode);
       if (user) {
         toast({ title: "Succès", description: "Connexion réussie." });
         router.push('/home');
@@ -66,7 +65,7 @@ function LoginPageContent() {
     e.preventDefault();
     setIsSubmitting(true);
     try {
-      const { user, connectionCode } = await createUser(signUpName, signUpEmail, signUpPassword);
+      const { user, connectionCode } = await createUser(signUpName, signUpEmail);
       setGeneratedCode(connectionCode);
       setShowCodeDialog(true);
       // After sign up, Firebase automatically signs the user in.
@@ -112,7 +111,7 @@ function LoginPageContent() {
               <CardHeader>
                 <CardTitle className="text-2xl">Bienvenue !</CardTitle>
                 <CardDescription>
-                  Connectez-vous avec votre e-mail et votre mot de passe.
+                  Connectez-vous avec votre e-mail et votre code de connexion.
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -123,8 +122,8 @@ function LoginPageContent() {
                       <Input id="email" type="email" placeholder="m@example.com" required value={signInEmail} onChange={(e) => setSignInEmail(e.target.value)} />
                     </div>
                     <div className="grid gap-2">
-                      <Label htmlFor="password">Mot de passe</Label>
-                      <Input id="password" type="password" required value={signInPassword} onChange={(e) => setSignInPassword(e.target.value)} />
+                      <Label htmlFor="code">Code de connexion</Label>
+                      <Input id="code" type="text" required value={connectionCode} onChange={(e) => setConnectionCode(e.target.value)} />
                     </div>
                     <Button type="submit" className="w-full" disabled={isSubmitting}>
                       {isSubmitting ? 'Connexion...' : 'Se connecter'}
@@ -153,10 +152,6 @@ function LoginPageContent() {
                       <Label htmlFor="email-signup">Email</Label>
                       <Input id="email-signup" type="email" placeholder="m@example.com" required value={signUpEmail} onChange={(e) => setSignUpEmail(e.target.value)} />
                     </div>
-                    <div className="grid gap-2">
-                      <Label htmlFor="password-signup">Mot de passe</Label>
-                      <Input id="password-signup" type="password" required value={signUpPassword} onChange={(e) => setSignUpPassword(e.target.value)} />
-                    </div>
                     <Button type="submit" className="w-full" disabled={isSubmitting}>
                       {isSubmitting ? 'Création...' : 'S\'inscrire'}
                     </Button>
@@ -172,7 +167,7 @@ function LoginPageContent() {
           <AlertDialogHeader>
             <AlertDialogTitle>Votre compte est créé !</AlertDialogTitle>
             <AlertDialogDescription>
-              Voici votre code de connexion unique. Conservez-le précieusement, il pourrait vous être utile.
+              Voici votre code de connexion unique. Conservez-le précieusement, il vous sera demandé pour vous connecter.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <div className="my-4 p-4 bg-muted rounded-md text-center">
