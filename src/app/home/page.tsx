@@ -64,8 +64,8 @@ export default function HomePage() {
                     <PhoneOutgoing className="h-10 w-10" />
                   </div>
                   <div>
-                    <h3 className="text-xl font-bold text-accent-foreground/90">3 contacts offerts pour commencer !</h3>
-                    <p className="text-accent-foreground/80 mt-1">
+                    <h3 className="text-xl font-bold text-accent-foreground">3 contacts offerts pour commencer !</h3>
+                    <p className="text-accent-foreground/90 mt-1">
                       Après vos 3 contacts gratuits, passez au Premium pour seulement 1500 FCFA/mois et contactez en illimité.
                     </p>
                   </div>
