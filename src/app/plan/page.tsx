@@ -11,19 +11,15 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import HomeLayout from '../home/layout';
 import { WhatsAppIcon } from '@/components/ui/icons';
 
-const FREE_DONATION_LIMIT = 3;
 const FREE_CONTACT_LIMIT = 3;
 const WHATSAPP_LINK = "https://wa.me/22650679369?text=Bonjour,%20je%20souhaite%20passer%20au%20plan%20payant%20sur%20Gee.";
 
 function PlanPageContent() {
     const { user, userData, loading } = useAuth();
     
-    const donationCount = userData?.donationCount || 0;
     const contactCount = userData?.contactCount || 0;
     const currentPlan = userData?.plan || 'free';
     
-    // Pour le plan gratuit, le nombre de dons est illimité, donc la barre de progression n'est plus pertinente.
-    // Nous la gardons pour les contacts.
     const contactProgress = (contactCount / FREE_CONTACT_LIMIT) * 100;
 
     if (loading) {
@@ -38,7 +34,6 @@ function PlanPageContent() {
                         <div className="space-y-4">
                             <Skeleton className="h-6 w-1/3 mb-2" />
                             <Skeleton className="h-6 w-full" />
-                            <Skeleton className="h-4 w-1/4" />
                         </div>
                          <div className="space-y-4">
                             <Skeleton className="h-6 w-1/3 mb-2" />
