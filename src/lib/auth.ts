@@ -1,5 +1,5 @@
 
-import { getAuth, createUserWithEmailAndPassword, signInWithCustomToken, signOut, updateProfile, setPersistence, browserLocalPersistence } from "firebase/auth";
+import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, updateProfile, setPersistence, browserLocalPersistence } from "firebase/auth";
 import { doc, setDoc, collection, query, where, getDocs } from "firebase/firestore";
 import firebaseApp, { db } from "./firebase";
 import type { User } from 'firebase/auth';
@@ -80,7 +80,7 @@ export async function loginWithConnectionCode(code: string): Promise<User | null
     // We can't sign in directly without a password.
     // So we will use the connection code which we stored as the password.
     // This is a simplification; in a production app, you might use a custom token.
-    const userCredential = await getAuth().signInWithEmailAndPassword(userData.email, code);
+    const userCredential = await signInWithEmailAndPassword(auth, userData.email, code);
 
     return userCredential.user;
     
