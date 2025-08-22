@@ -1,7 +1,7 @@
 
 import { db } from './firebase';
 import { collection, getDocs, query, orderBy, addDoc, serverTimestamp, where, doc, runTransaction, deleteDoc, updateDoc, writeBatch } from 'firebase/firestore';
-import type { Donation } from './types';
+import type { Donation, DonationStatus } from './types';
 import { getAuth } from 'firebase/auth';
 
 const mapDocToDonation = (doc: any): Donation => {
@@ -20,6 +20,7 @@ const mapDocToDonation = (doc: any): Donation => {
       },
       createdAt: createdAt,
       isFeatured: data.isFeatured || false,
+      status: data.status || 'disponible',
     } as Donation;
 }
 
@@ -67,9 +68,20 @@ export async function addDonation(donation: NewDonationData): Promise<string> {
         },
         createdAt: serverTimestamp(),
         isFeatured: false,
+        status: 'disponible',
     });
     
     return newDonationRef.id;
+}
+
+export async function updateDonationStatus(donationId: string, status: DonationStatus): Promise<void> {
+    const donationRef = doc(db, 'donations', donationId);
+    try {
+        await updateDoc(donationRef, { status: status });
+    } catch (error) {
+        console.error("Error updating donation status: ", error);
+        throw new Error("Failed to update donation status.");
+    }
 }
 
 

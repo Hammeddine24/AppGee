@@ -1,4 +1,6 @@
 
+export type DonationStatus = 'disponible' | 'en cours' | 'pris';
+
 export type Donation = {
   id: string;
   title: string;
@@ -12,4 +14,5 @@ export type Donation = {
   };
   createdAt: string; // Should be ISO string date
   isFeatured?: boolean;
+  status: DonationStatus;
 };

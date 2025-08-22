@@ -1,7 +1,7 @@
 
 "use client"
 import Image from 'next/image';
-import type { Donation } from '@/lib/types';
+import type { Donation, DonationStatus } from '@/lib/types';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
@@ -22,16 +22,18 @@ import {
 } from "@/components/ui/alert-dialog"
 import { useState } from 'react';
 import { Zap } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 
 interface DonationCardProps {
   donation: Donation;
+  showStatusEditor?: boolean;
+  onStatusChange?: (donationId: string, newStatus: DonationStatus) => void;
 }
 
 const FREE_CONTACT_LIMIT = 3;
 
 function isPhoneNumber(contact: string) {
-  // Simple check for digits, possibly with spaces or a + at the start
   return /^\+?\d[\d\s]+$/.test(contact);
 }
 
@@ -40,7 +42,7 @@ function isEmail(contact: string) {
 }
 
 
-export function DonationCard({ donation }: DonationCardProps) {
+export function DonationCard({ donation, showStatusEditor = false, onStatusChange }: DonationCardProps) {
   const { user, userData, refreshUserData, isLoggedIn } = useAuth();
   const { toast } = useToast();
   const router = useRouter();
@@ -52,7 +54,6 @@ export function DonationCard({ donation }: DonationCardProps) {
     } else if (isEmail(donation.contact)) {
       window.location.href = `mailto:${donation.contact}`;
     } else {
-      // Fallback for other contact types, maybe just copy to clipboard
       navigator.clipboard.writeText(donation.contact);
       toast({
         title: "Contact copié",
@@ -74,22 +75,19 @@ export function DonationCard({ donation }: DonationCardProps) {
     const currentPlan = userData.plan || 'free';
     const contactCount = userData.contactCount || 0;
     
-    // Allow contact if user is on a paid plan
     if (currentPlan !== 'free') {
         initiateContact();
         return;
     }
     
-    // Check if the free limit is reached
     if (contactCount >= FREE_CONTACT_LIMIT) {
         setShowUpgradeDialog(true);
         return;
     }
 
-    // If limit is not reached, increment count and show contact
     try {
         await incrementContactCount(user.uid);
-        refreshUserData(); // Refresh user data to reflect new count
+        refreshUserData();
         initiateContact();
     } catch (error) {
         console.error("Failed to increment contact count:", error);
@@ -106,6 +104,26 @@ export function DonationCard({ donation }: DonationCardProps) {
     router.push('/plan');
   }
 
+  const getStatusBadgeVariant = (status: DonationStatus) => {
+    switch (status) {
+        case 'disponible':
+            return 'default';
+        case 'en cours':
+            return 'secondary';
+        case 'pris':
+            return 'destructive';
+        default:
+            return 'outline';
+    }
+  }
+
+  const handleLocalStatusChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const newStatus = e.target.value as DonationStatus;
+    if (onStatusChange) {
+      onStatusChange(donation.id, newStatus);
+    }
+  }
+
   return (
     <>
     <Card className="flex flex-col overflow-hidden transition-all hover:shadow-lg">
@@ -118,6 +136,12 @@ export function DonationCard({ donation }: DonationCardProps) {
             className="object-cover"
             data-ai-hint={donation.imageHint}
           />
+           <Badge 
+            variant={getStatusBadgeVariant(donation.status)}
+            className="absolute top-2 right-2 capitalize"
+          >
+            {donation.status}
+          </Badge>
         </div>
       </CardHeader>
       <CardContent className="flex-grow p-4">
@@ -125,17 +149,34 @@ export function DonationCard({ donation }: DonationCardProps) {
         <p className="text-sm text-muted-foreground mt-1 line-clamp-2">{donation.description}</p>
       </CardContent>
       <CardFooter className="flex justify-between items-center p-4 pt-0">
-        <div className="flex items-center gap-2">
-          <Avatar className="h-8 w-8">
-            <AvatarFallback>{donation.user.name.charAt(0).toUpperCase()}</AvatarFallback>
-          </Avatar>
-          <span className="text-sm font-medium">{donation.user.name}</span>
-        </div>
-         <Button variant="outline" onClick={handleContact}>Contacter</Button>
+        {showStatusEditor ? (
+          <div className="w-full">
+            <label htmlFor={`status-${donation.id}`} className="text-xs font-medium text-muted-foreground">Changer le statut :</label>
+            <select
+                id={`status-${donation.id}`}
+                value={donation.status}
+                onChange={handleLocalStatusChange}
+                className="w-full mt-1 p-2 border rounded-md bg-background text-sm"
+            >
+                <option value="disponible">Disponible</option>
+                <option value="en cours">En cours</option>
+                <option value="pris">Pris</option>
+            </select>
+          </div>
+        ) : (
+          <>
+            <div className="flex items-center gap-2">
+              <Avatar className="h-8 w-8">
+                <AvatarFallback>{donation.user.name.charAt(0).toUpperCase()}</AvatarFallback>
+              </Avatar>
+              <span className="text-sm font-medium">{donation.user.name}</span>
+            </div>
+            <Button variant="outline" onClick={handleContact} disabled={donation.status === 'pris'}>Contacter</Button>
+          </>
+        )}
       </CardFooter>
     </Card>
 
-    {/* Upgrade Dialog */}
     <AlertDialog open={showUpgradeDialog} onOpenChange={setShowUpgradeDialog}>
         <AlertDialogContent>
             <AlertDialogHeader>
