@@ -1,6 +1,6 @@
 
 "use client"
-import React from 'react';
+import React, { useMemo } from 'react';
 import { DonationCard } from '@/components/donation-card';
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from '@/components/ui/carousel';
 import Autoplay from "embla-carousel-autoplay"
@@ -15,8 +15,14 @@ export default function HomePage() {
     Autoplay({ delay: 3000, stopOnInteraction: true })
   )
 
+  const shuffledDonations = useMemo(() => {
+    // Crée une copie du tableau et le mélange
+    return [...donations].sort(() => Math.random() - 0.5);
+  }, [donations]);
+
   return (
     <div className="container mx-auto py-8 px-4 sm:px-6 lg:px-8">
+      {/* Section des dons récents */}
       <section className="mb-12">
           <h2 className="text-3xl font-bold mb-6">Dons récents</h2>
           
@@ -63,6 +69,37 @@ export default function HomePage() {
                 <CarouselNext className="mr-12" />
             </Carousel>
           )}
+      </section>
+
+      {/* Section Fil d'actualité */}
+      <section>
+        <h2 className="text-3xl font-bold mb-6">Fil d'actualité</h2>
+        {loading ? (
+             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {[...Array(6)].map((_, i) => (
+                    <div key={i} className="flex flex-col space-y-3">
+                    <Skeleton className="h-[224px] w-full rounded-xl" />
+                    <div className="space-y-2 p-4">
+                        <Skeleton className="h-4 w-[250px]" />
+                        <Skeleton className="h-4 w-[200px]" />
+                    </div>
+                    </div>
+                ))}
+             </div>
+        ) : donations.length === 0 ? (
+            <Alert>
+                <AlertTitle>Le fil d'actualité est vide</AlertTitle>
+                <AlertDescription>
+                    Aucun don n'a encore été publié.
+                </AlertDescription>
+            </Alert>
+        ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {shuffledDonations.map((donation) => (
+                    <DonationCard key={donation.id} donation={donation} />
+                ))}
+            </div>
+        )}
       </section>
     </div>
   );
