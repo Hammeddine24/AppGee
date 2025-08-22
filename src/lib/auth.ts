@@ -58,6 +58,7 @@ export async function loginWithConnectionCode(email: string, code: string): Prom
     return userCredential.user;
   } catch (error: any) {
     console.error("Error logging in with connection code:", error);
+    // Unify error messages for security and better UX
     if (error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password' || error.code === 'auth/invalid-credential') {
         throw new Error("Email ou code de connexion invalide.");
     }
