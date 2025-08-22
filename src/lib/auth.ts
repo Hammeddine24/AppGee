@@ -6,7 +6,7 @@ import type { User } from 'firebase/auth';
 
 const auth = getAuth(firebaseApp);
 
-// Set session persistence
+// Set session persistence to remember logged-in users
 setPersistence(auth, browserLocalPersistence)
   .catch((error) => {
     console.error("Error setting session persistence:", error);
@@ -29,8 +29,10 @@ export async function createUser(name: string, email: string): Promise<{ user: U
     const userCredential = await createUserWithEmailAndPassword(auth, email, connectionCode);
     const user = userCredential.user;
 
+    // Update user's display name
     await updateProfile(user, { displayName: name });
 
+    // Store user details and connection code in Firestore
     await setDoc(doc(db, "users", user.uid), {
       name: name,
       email: user.email,
@@ -53,39 +55,15 @@ export async function createUser(name: string, email: string): Promise<{ user: U
 
 export async function loginWithConnectionCode(email: string, code: string): Promise<User | null> {
   try {
-    // Method 1: Try signing in directly. This works for all new users.
+    // The connection code is used as the password
     const userCredential = await signInWithEmailAndPassword(auth, email, code);
     return userCredential.user;
   } catch (error: any) {
-     // Check if it's an invalid credential error, likely an old user
-    if (error.code === 'auth/invalid-credential') {
-      try {
-        // Method 2: It's an old user. Let's try to update their password.
-        const response = await fetch('/api/update-password', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email, connectionCode: code }),
-        });
-        
-        if (!response.ok) {
-           // If the backend validation fails, the credentials are truly wrong.
-           throw new Error("Email ou code de connexion invalide.");
-        }
-
-        // The password is now updated. Try signing in again.
-        const userCredential = await signInWithEmailAndPassword(auth, email, code);
-        return userCredential.user;
-
-      } catch (updateError: any) {
-        // Handle errors from the update process
-        console.error("Error during password update and re-login:", updateError);
+     if (error.code === 'auth/invalid-credential') {
         throw new Error("Email ou code de connexion invalide.");
-      }
-    } else {
-       // For other auth errors (network, etc.), throw a generic message.
-       console.error("Error logging in with connection code:", error);
-       throw new Error("Une erreur s'est produite lors de la connexion.");
-    }
+     }
+    console.error("Error logging in with connection code:", error);
+    throw new Error("Une erreur s'est produite lors de la connexion.");
   }
 }
 
