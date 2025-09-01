@@ -3,7 +3,12 @@
 
 import fetch from 'node-fetch';
 
-const API_URL = "https://v6.exchangerate-api.com/v6/e182b2d0752a1343753a0604/latest/USD";
+// IMPORTANT: To enable this feature, get a free API key from https://www.exchangerate-api.com
+// and add it to a .env.local file in the root of your project:
+// EXCHANGERATE_API_KEY=your_api_key_here
+
+const API_KEY = process.env.EXCHANGERATE_API_KEY;
+const API_URL = `https://v6.exchangerate-api.com/v6/${API_KEY}/latest/USD`;
 
 export interface CurrencyData {
   rates: { [key: string]: number };
@@ -32,6 +37,15 @@ const currencyNames: { [key: string]: string } = {
 
 
 export async function getCurrencyData(): Promise<CurrencyData> {
+  if (!API_KEY) {
+    console.warn("ExchangeRate API key is not set. Currency conversion is disabled.");
+    // Return default data so the UI doesn't break
+    return {
+        rates: { 'XOF': 615 }, // Provide a default to avoid breaking the UI
+        names: { 'XOF': 'CFA Franc BCEAO' }
+    };
+  }
+  
   const now = Date.now();
   if (cachedData && (now - lastFetchTime < CACHE_DURATION)) {
     return cachedData;
