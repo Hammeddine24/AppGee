@@ -185,14 +185,31 @@ const currencyNames: { [key: string]: string } = {
     "ZWL": "Zimbabwean Dollar"
 };
 
+const requestedCurrencyCodes = [
+    // Africa
+    "AOA", "BIF", "CVE", "XAF", "KMF", "CDF", "DJF", "EGP", "ERN", "SZL", 
+    "ETB", "XOF", "GMD", "GHS", "GNF", "KES", "LSL", "LRD", "LYD", "MGA", 
+    "MWK", "MRU", "MUR", "MAD", "MZN", "NAD", "NGN", "RWF", "STN", "SCR", 
+    "SLE", "SLL", "SOS", "ZAR", "SSP", "SDG", "TZS", "TND", "UGX", "ZMW", "ZWL",
+    // Plus EUR and USD
+    "EUR", "USD"
+];
+
+const fallbackNames: { [key: string]: string } = {};
+requestedCurrencyCodes.forEach(code => {
+    if (currencyNames[code]) {
+        fallbackNames[code] = currencyNames[code];
+    }
+});
+
 
 export async function getCurrencyData(): Promise<CurrencyData> {
   if (!API_KEY) {
     console.warn("ExchangeRate API key is not set. Currency conversion is disabled.");
-    // Return default data so the UI doesn't break
+    // Return the requested list of currencies so the UI doesn't break
     return {
-        rates: { 'XOF': 615 }, // Provide a default to avoid breaking the UI
-        names: { 'XOF': 'CFA Franc BCEAO' }
+        rates: { 'XOF': 615 }, // Provide a default to avoid breaking calculations
+        names: fallbackNames
     };
   }
   
