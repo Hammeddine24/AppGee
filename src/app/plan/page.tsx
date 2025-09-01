@@ -56,20 +56,24 @@ function PlanPageContent() {
     }, []);
 
     useEffect(() => {
-        if (currencyData && selectedCurrency && currencyData.rates[selectedCurrency]) {
+        if (currencyData && selectedCurrency) {
+            if (selectedCurrency === 'XOF') {
+                setConvertedPrice(PREMIUM_PRICE_XOF.toLocaleString('fr-FR'));
+                return;
+            }
+            
             const rate = currencyData.rates[selectedCurrency];
             const baseRateXOF = currencyData.rates['XOF'];
-            if (baseRateXOF) {
+
+            if (rate && baseRateXOF) {
                 const price = (PREMIUM_PRICE_XOF / baseRateXOF) * rate;
-                 setConvertedPrice(price.toLocaleString('fr-FR', {
+                setConvertedPrice(price.toLocaleString('fr-FR', {
                     minimumFractionDigits: 2,
                     maximumFractionDigits: 2
                 }));
             } else {
-                 setConvertedPrice('N/A');
+                setConvertedPrice('N/A');
             }
-        } else if (selectedCurrency === 'XOF') {
-            setConvertedPrice(PREMIUM_PRICE_XOF.toLocaleString('fr-FR'));
         } else {
             setConvertedPrice(null);
         }
@@ -249,3 +253,5 @@ export default function PlanPage() {
         </HomeLayout>
     )
 }
+
+    
