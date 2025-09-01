@@ -22,7 +22,7 @@ function PlanPageContent() {
     const { user, userData, loading } = useAuth();
     
     const [currencyData, setCurrencyData] = useState<CurrencyData | null>(null);
-    const [selectedCurrency, setSelectedCurrency] = useState('XOF');
+    const [selectedCurrency, setSelectedCurrency] = useState<string | null>(null);
     const [convertedPrice, setConvertedPrice] = useState<string | null>(null);
     const [loadingCurrencies, setLoadingCurrencies] = useState(true);
 
@@ -32,7 +32,6 @@ function PlanPageContent() {
                 setLoadingCurrencies(true);
                 const data = await getCurrencyData();
                 setCurrencyData(data);
-                setConvertedPrice(PREMIUM_PRICE_XOF.toLocaleString('fr-FR')); // Initial display
             } catch (error) {
                 console.error("Failed to fetch currency data", error);
                 // Handle error gracefully in UI if needed
@@ -44,7 +43,7 @@ function PlanPageContent() {
     }, []);
 
     useEffect(() => {
-        if (currencyData && currencyData.rates[selectedCurrency]) {
+        if (currencyData && selectedCurrency && currencyData.rates[selectedCurrency]) {
             const rate = currencyData.rates[selectedCurrency];
             const baseRateXOF = currencyData.rates['XOF'];
             if(baseRateXOF) {
@@ -54,9 +53,10 @@ function PlanPageContent() {
                     maximumFractionDigits: 2
                 }));
             } else {
-                // Fallback if XOF rate isn't available for some reason
                  setConvertedPrice('N/A');
             }
+        } else {
+            setConvertedPrice(null);
         }
     }, [currencyData, selectedCurrency]);
     
@@ -145,10 +145,12 @@ function PlanPageContent() {
                         
                         <div className="p-4 bg-muted/50 rounded-lg space-y-3">
                             <div className="font-semibold text-center text-2xl">
-                                {loadingCurrencies || !convertedPrice ? (
-                                    <Skeleton className="h-8 w-40 mx-auto" />
-                                ) : (
+                                {loadingCurrencies ? (
+                                     <Skeleton className="h-8 w-40 mx-auto" />
+                                ) : convertedPrice && selectedCurrency ? (
                                     `${convertedPrice} ${selectedCurrency}`
+                                ) : (
+                                    `${PREMIUM_PRICE_XOF.toLocaleString('fr-FR')} XOF`
                                 )}
                                 <span className="text-base font-normal text-muted-foreground">/mois</span>
                             </div>
@@ -158,7 +160,7 @@ function PlanPageContent() {
                                  {loadingCurrencies || !currencyData ? (
                                      <Skeleton className="h-10 w-full sm:w-48" />
                                  ) : (
-                                    <Select onValueChange={setSelectedCurrency} defaultValue={selectedCurrency}>
+                                    <Select onValueChange={setSelectedCurrency}>
                                         <SelectTrigger className="w-full sm:w-auto">
                                             <SelectValue placeholder="Sélectionnez une devise" />
                                         </SelectTrigger>
