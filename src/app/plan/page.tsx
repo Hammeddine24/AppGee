@@ -10,9 +10,22 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import HomeLayout from '../home/layout';
 import { WhatsAppIcon } from '@/components/ui/icons';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { getCurrencyData, CurrencyData } from '@/services/currency-service';
-import { Loader2 } from 'lucide-react';
+import { Check, ChevronsUpDown } from "lucide-react"
+import { cn } from "@/lib/utils"
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "@/components/ui/command"
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover"
 
 const FREE_CONTACT_LIMIT = 3;
 const WHATSAPP_LINK = "https://wa.me/22650679369?text=Bonjour,%20je%20souhaite%20passer%20au%20plan%20payant%20sur%20Gee.";
@@ -25,6 +38,7 @@ function PlanPageContent() {
     const [selectedCurrency, setSelectedCurrency] = useState<string | null>(null);
     const [convertedPrice, setConvertedPrice] = useState<string | null>(null);
     const [loadingCurrencies, setLoadingCurrencies] = useState(true);
+    const [popoverOpen, setPopoverOpen] = useState(false)
 
     useEffect(() => {
         const fetchCurrencies = async () => {
@@ -105,6 +119,13 @@ function PlanPageContent() {
         );
     }
     
+    const currencyList = currencyData ? Object.entries(currencyData.names)
+        .sort(([, a], [, b]) => a.localeCompare(b))
+        .map(([code, name]) => ({
+            value: code,
+            label: `${name} (${code})`
+        })) : [];
+
     return (
         <div className="container mx-auto py-8 px-4 sm:px-6 lg:px-8 flex justify-center">
             <Card className="w-full max-w-2xl">
@@ -160,20 +181,49 @@ function PlanPageContent() {
                                  {loadingCurrencies || !currencyData ? (
                                      <Skeleton className="h-10 w-full sm:w-48" />
                                  ) : (
-                                    <Select onValueChange={setSelectedCurrency}>
-                                        <SelectTrigger className="w-full sm:w-auto">
-                                            <SelectValue placeholder="Sélectionnez une devise" />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            {Object.entries(currencyData.names)
-                                                .sort(([, a], [, b]) => a.localeCompare(b))
-                                                .map(([code, name]) => (
-                                                    <SelectItem key={code} value={code}>
-                                                        {name} ({code})
-                                                    </SelectItem>
-                                            ))}
-                                        </SelectContent>
-                                    </Select>
+                                    <Popover open={popoverOpen} onOpenChange={setPopoverOpen}>
+                                        <PopoverTrigger asChild>
+                                            <Button
+                                            variant="outline"
+                                            role="combobox"
+                                            aria-expanded={popoverOpen}
+                                            className="w-full sm:w-[300px] justify-between"
+                                            >
+                                            {selectedCurrency
+                                                ? currencyList.find((currency) => currency.value === selectedCurrency)?.label
+                                                : "Sélectionnez une devise..."}
+                                            <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                                            </Button>
+                                        </PopoverTrigger>
+                                        <PopoverContent className="w-[300px] p-0">
+                                            <Command>
+                                                <CommandInput placeholder="Rechercher une devise..." />
+                                                <CommandList>
+                                                    <CommandEmpty>Aucune devise trouvée.</CommandEmpty>
+                                                    <CommandGroup>
+                                                    {currencyList.map((currency) => (
+                                                        <CommandItem
+                                                            key={currency.value}
+                                                            value={currency.value}
+                                                            onSelect={(currentValue) => {
+                                                                setSelectedCurrency(currentValue.toUpperCase() === selectedCurrency ? null : currentValue.toUpperCase())
+                                                                setPopoverOpen(false)
+                                                            }}
+                                                            >
+                                                        <Check
+                                                            className={cn(
+                                                            "mr-2 h-4 w-4",
+                                                            selectedCurrency === currency.value ? "opacity-100" : "opacity-0"
+                                                            )}
+                                                        />
+                                                        {currency.label}
+                                                        </CommandItem>
+                                                    ))}
+                                                    </CommandGroup>
+                                                </CommandList>
+                                            </Command>
+                                        </PopoverContent>
+                                    </Popover>
                                  )}
                             </div>
                         </div>
