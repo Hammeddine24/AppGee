@@ -138,14 +138,14 @@ function PlanPageContent() {
                         <h3 className="text-lg font-bold">Passez au Premium pour des contacts illimités !</h3>
                         
                         <div className="p-4 bg-muted/50 rounded-lg space-y-3">
-                            <p className="font-semibold text-center text-2xl">
+                            <div className="font-semibold text-center text-2xl">
                                 {loadingCurrencies || !convertedPrice ? (
                                     <Skeleton className="h-8 w-40 mx-auto" />
                                 ) : (
                                     `${convertedPrice} ${selectedCurrency}`
                                 )}
                                 <span className="text-base font-normal text-muted-foreground">/mois</span>
-                            </p>
+                            </div>
                             
                             <div className="flex flex-col sm:flex-row items-center gap-2">
                                 <span className="text-sm font-medium whitespace-nowrap">Choisissez votre devise :</span>
