@@ -1,6 +1,6 @@
 
 "use client"
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useAuth } from '@/hooks/use-auth';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
@@ -10,12 +10,49 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import HomeLayout from '../home/layout';
 import { WhatsAppIcon } from '@/components/ui/icons';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { getCurrencyData, CurrencyData } from '@/services/currency-service';
+import { Loader2 } from 'lucide-react';
 
 const FREE_CONTACT_LIMIT = 3;
 const WHATSAPP_LINK = "https://wa.me/22650679369?text=Bonjour,%20je%20souhaite%20passer%20au%20plan%20payant%20sur%20Gee.";
+const PREMIUM_PRICE_XOF = 1500;
 
 function PlanPageContent() {
     const { user, userData, loading } = useAuth();
+    
+    const [currencyData, setCurrencyData] = useState<CurrencyData | null>(null);
+    const [selectedCurrency, setSelectedCurrency] = useState('XOF');
+    const [convertedPrice, setConvertedPrice] = useState<string | null>(null);
+    const [loadingCurrencies, setLoadingCurrencies] = useState(true);
+
+    useEffect(() => {
+        const fetchCurrencies = async () => {
+            try {
+                setLoadingCurrencies(true);
+                const data = await getCurrencyData();
+                setCurrencyData(data);
+                setConvertedPrice(PREMIUM_PRICE_XOF.toLocaleString('fr-FR')); // Initial display
+            } catch (error) {
+                console.error("Failed to fetch currency data", error);
+                // Handle error gracefully in UI if needed
+            } finally {
+                setLoadingCurrencies(false);
+            }
+        };
+        fetchCurrencies();
+    }, []);
+
+    useEffect(() => {
+        if (currencyData && selectedCurrency) {
+            const rate = currencyData.rates[selectedCurrency];
+            const price = (PREMIUM_PRICE_XOF / currencyData.rates['XOF']) * rate;
+            setConvertedPrice(price.toLocaleString('fr-FR', {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            }));
+        }
+    }, [currencyData, selectedCurrency]);
     
     const contactCount = userData?.contactCount || 0;
     const currentPlan = userData?.plan || 'free';
@@ -97,15 +134,46 @@ function PlanPageContent() {
                 </CardContent>
                 {currentPlan === 'free' && (
                 <CardFooter className="flex-col items-start gap-4 border-t pt-6">
-                    <h3 className="text-lg font-bold">Passez au Premium</h3>
-                    <p className="text-muted-foreground">
-                       Pour 1500 FCFA/mois, contactez des utilisateurs en illimité !
-                    </p>
-                    <Button asChild className="w-full bg-green-600 hover:bg-green-700 text-white">
-                        <Link href={WHATSAPP_LINK} target="_blank">
-                           <WhatsAppIcon className="mr-2 h-5 w-5" /> Contacter par WhatsApp pour souscrire
-                        </Link>
-                    </Button>
+                    <div className="w-full space-y-4">
+                        <h3 className="text-lg font-bold">Passez au Premium pour des contacts illimités !</h3>
+                        
+                        <div className="p-4 bg-muted/50 rounded-lg space-y-3">
+                            <p className="font-semibold text-center text-2xl">
+                                {loadingCurrencies || !convertedPrice ? (
+                                    <Skeleton className="h-8 w-40 mx-auto" />
+                                ) : (
+                                    `${convertedPrice} ${selectedCurrency}`
+                                )}
+                                <span className="text-base font-normal text-muted-foreground">/mois</span>
+                            </p>
+                            
+                            <div className="flex flex-col sm:flex-row items-center gap-2">
+                                <span className="text-sm font-medium whitespace-nowrap">Choisissez votre devise :</span>
+                                 {loadingCurrencies || !currencyData ? (
+                                     <Skeleton className="h-10 w-full sm:w-48" />
+                                 ) : (
+                                    <Select onValueChange={setSelectedCurrency} defaultValue={selectedCurrency}>
+                                        <SelectTrigger className="w-full sm:w-auto">
+                                            <SelectValue placeholder="Sélectionnez une devise" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            {Object.entries(currencyData.names).map(([code, name]) => (
+                                                <SelectItem key={code} value={code}>
+                                                    {code} - {name}
+                                                </SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+                                 )}
+                            </div>
+                        </div>
+
+                        <Button asChild className="w-full bg-green-600 hover:bg-green-700 text-white">
+                            <Link href={WHATSAPP_LINK} target="_blank">
+                               <WhatsAppIcon className="mr-2 h-5 w-5" /> Contacter par WhatsApp pour souscrire
+                            </Link>
+                        </Button>
+                    </div>
                 </CardFooter>
                 )}
             </Card>
