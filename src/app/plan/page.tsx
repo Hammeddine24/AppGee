@@ -44,13 +44,19 @@ function PlanPageContent() {
     }, []);
 
     useEffect(() => {
-        if (currencyData && selectedCurrency) {
+        if (currencyData && currencyData.rates[selectedCurrency]) {
             const rate = currencyData.rates[selectedCurrency];
-            const price = (PREMIUM_PRICE_XOF / currencyData.rates['XOF']) * rate;
-            setConvertedPrice(price.toLocaleString('fr-FR', {
-                minimumFractionDigits: 2,
-                maximumFractionDigits: 2
-            }));
+            const baseRateXOF = currencyData.rates['XOF'];
+            if(baseRateXOF) {
+                const price = (PREMIUM_PRICE_XOF / baseRateXOF) * rate;
+                 setConvertedPrice(price.toLocaleString('fr-FR', {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2
+                }));
+            } else {
+                // Fallback if XOF rate isn't available for some reason
+                 setConvertedPrice('N/A');
+            }
         }
     }, [currencyData, selectedCurrency]);
     
@@ -157,10 +163,12 @@ function PlanPageContent() {
                                             <SelectValue placeholder="Sélectionnez une devise" />
                                         </SelectTrigger>
                                         <SelectContent>
-                                            {Object.entries(currencyData.names).map(([code, name]) => (
-                                                <SelectItem key={code} value={code}>
-                                                    {code} - {name}
-                                                </SelectItem>
+                                            {Object.entries(currencyData.names)
+                                                .sort(([, a], [, b]) => a.localeCompare(b))
+                                                .map(([code, name]) => (
+                                                    <SelectItem key={code} value={code}>
+                                                        {name} ({code})
+                                                    </SelectItem>
                                             ))}
                                         </SelectContent>
                                     </Select>
