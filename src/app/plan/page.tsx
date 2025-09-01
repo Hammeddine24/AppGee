@@ -48,7 +48,6 @@ function PlanPageContent() {
                 setCurrencyData(data);
             } catch (error) {
                 console.error("Failed to fetch currency data", error);
-                // Handle error gracefully in UI if needed
             } finally {
                 setLoadingCurrencies(false);
             }
@@ -60,7 +59,7 @@ function PlanPageContent() {
         if (currencyData && selectedCurrency && currencyData.rates[selectedCurrency]) {
             const rate = currencyData.rates[selectedCurrency];
             const baseRateXOF = currencyData.rates['XOF'];
-            if(baseRateXOF) {
+            if (baseRateXOF) {
                 const price = (PREMIUM_PRICE_XOF / baseRateXOF) * rate;
                  setConvertedPrice(price.toLocaleString('fr-FR', {
                     minimumFractionDigits: 2,
@@ -69,6 +68,8 @@ function PlanPageContent() {
             } else {
                  setConvertedPrice('N/A');
             }
+        } else if (selectedCurrency === 'XOF') {
+            setConvertedPrice(PREMIUM_PRICE_XOF.toLocaleString('fr-FR'));
         } else {
             setConvertedPrice(null);
         }
