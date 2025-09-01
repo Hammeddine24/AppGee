@@ -14,7 +14,7 @@ export default function HomePage() {
   const { donations, loading } = useDonations();
 
   const autoplayPlugin = React.useRef(
-    Autoplay({ delay: 10000, stopOnInteraction: true })
+    Autoplay({ delay: 5000, stopOnInteraction: true })
   )
   
   const donationsAutoplayPlugin = React.useRef(
