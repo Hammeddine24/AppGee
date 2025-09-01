@@ -58,14 +58,14 @@ export default function HomePage() {
             
             {/* Bannière 2: Limites de Contact */}
             <CarouselItem>
-              <Card className="bg-accent/10 border-accent/30 overflow-hidden">
+              <Card className="bg-green-600 border-green-700 overflow-hidden">
                  <CardContent className="p-6 flex flex-col md:flex-row items-center gap-6">
-                  <div className="bg-accent text-accent-foreground rounded-full p-4">
+                  <div className="bg-white/20 text-white rounded-full p-4">
                     <PhoneOutgoing className="h-10 w-10" />
                   </div>
-                  <div>
-                    <h3 className="text-xl font-bold text-accent-foreground">3 contacts offerts pour commencer !</h3>
-                    <p className="text-accent-foreground/90 mt-1">
+                  <div className="text-white">
+                    <h3 className="text-xl font-bold">3 contacts offerts pour commencer !</h3>
+                    <p className="opacity-90 mt-1">
                       Après vos 3 contacts gratuits, passez au Premium pour seulement 1500 FCFA/mois et contactez en illimité.
                     </p>
                   </div>
