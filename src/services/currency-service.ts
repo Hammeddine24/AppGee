@@ -202,13 +202,60 @@ requestedCurrencyCodes.forEach(code => {
     }
 });
 
+// Fallback rates based on USD, for when the API key is missing.
+// These are approximate and should not be used for real financial transactions.
+const fallbackRates = {
+    "USD": 1,
+    "EUR": 0.92,
+    "AOA": 825,
+    "BIF": 2850,
+    "CVE": 102,
+    "XAF": 605,
+    "KMF": 455,
+    "CDF": 2700,
+    "DJF": 177,
+    "EGP": 47,
+    "ERN": 15,
+    "SZL": 18,
+    "ETB": 57,
+    "XOF": 605,
+    "GMD": 65,
+    "GHS": 13,
+    "GNF": 8600,
+    "KES": 130,
+    "LSL": 18,
+    "LRD": 190,
+    "LYD": 4.8,
+    "MGA": 4500,
+    "MWK": 1700,
+    "MRU": 39,
+    "MUR": 46,
+    "MAD": 10,
+    "MZN": 64,
+    "NAD": 18,
+    "NGN": 1400,
+    "RWF": 1300,
+    "STN": 22,
+    "SCR": 13,
+    "SLE": 22,
+    "SLL": 22000,
+    "SOS": 570,
+    "ZAR": 18,
+    "SSP": 1500,
+    "SDG": 600,
+    "TZS": 2600,
+    "TND": 3.1,
+    "UGX": 3800,
+    "ZMW": 25,
+    "ZWL": 13
+};
+
 
 export async function getCurrencyData(): Promise<CurrencyData> {
   if (!API_KEY) {
-    console.warn("ExchangeRate API key is not set. Currency conversion is disabled.");
-    // Return the requested list of currencies so the UI doesn't break
+    console.warn("ExchangeRate API key is not set. Using fallback currency data.");
     return {
-        rates: { 'XOF': 615 }, // Provide a default to avoid breaking calculations
+        rates: fallbackRates,
         names: fallbackNames
     };
   }
@@ -249,8 +296,10 @@ export async function getCurrencyData(): Promise<CurrencyData> {
     return cachedData;
   } catch (error) {
     console.error("Failed to fetch or process currency data:", error);
-    // In case of an error, return the last known good data if available, otherwise throw
-    if(cachedData) return cachedData;
-    throw error;
+    // In case of an error, return the fallback data
+    return {
+        rates: fallbackRates,
+        names: fallbackNames
+    };
   }
 }
