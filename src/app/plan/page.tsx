@@ -26,19 +26,29 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover"
+import { updateUserCurrency } from '@/lib/user';
+import { useToast } from '@/hooks/use-toast';
 
 const FREE_CONTACT_LIMIT = 3;
 const WHATSAPP_LINK = "https://wa.me/22650679369?text=Bonjour,%20je%20souhaite%20passer%20au%20plan%20payant%20sur%20Gee.";
 const PREMIUM_PRICE_XOF = 1500;
 
 function PlanPageContent() {
-    const { user, userData, loading } = useAuth();
+    const { user, userData, loading, refreshUserData } = useAuth();
+    const { toast } = useToast();
     
     const [currencyData, setCurrencyData] = useState<CurrencyData | null>(null);
     const [selectedCurrency, setSelectedCurrency] = useState<string | null>(null);
     const [convertedPrice, setConvertedPrice] = useState<string | null>(null);
     const [loadingCurrencies, setLoadingCurrencies] = useState(true);
     const [popoverOpen, setPopoverOpen] = useState(false)
+
+    useEffect(() => {
+        if (userData?.currency) {
+            setSelectedCurrency(userData.currency);
+        }
+    }, [userData]);
+
 
     useEffect(() => {
         const fetchCurrencies = async () => {
@@ -56,28 +66,35 @@ function PlanPageContent() {
     }, []);
 
     useEffect(() => {
-        if (currencyData && selectedCurrency) {
-            if (selectedCurrency === 'XOF') {
-                setConvertedPrice(PREMIUM_PRICE_XOF.toLocaleString('fr-FR'));
-                return;
-            }
-            
+        if (currencyData && selectedCurrency && currencyData.rates[selectedCurrency] && currencyData.rates['XOF']) {
             const rate = currencyData.rates[selectedCurrency];
             const baseRateXOF = currencyData.rates['XOF'];
+            
+            const price = (PREMIUM_PRICE_XOF / baseRateXOF) * rate;
+            setConvertedPrice(price.toLocaleString('fr-FR', {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            }));
 
-            if (rate && baseRateXOF) {
-                const price = (PREMIUM_PRICE_XOF / baseRateXOF) * rate;
-                setConvertedPrice(price.toLocaleString('fr-FR', {
-                    minimumFractionDigits: 2,
-                    maximumFractionDigits: 2
-                }));
-            } else {
-                setConvertedPrice('N/A');
-            }
+        } else if (selectedCurrency === 'XOF') {
+            setConvertedPrice(PREMIUM_PRICE_XOF.toLocaleString('fr-FR'));
         } else {
             setConvertedPrice(null);
         }
     }, [currencyData, selectedCurrency]);
+
+    const handleCurrencyChange = async (newCurrency: string) => {
+        if (!user) return;
+        const oldCurrency = selectedCurrency;
+        setSelectedCurrency(newCurrency);
+        try {
+            await updateUserCurrency(user.uid, newCurrency);
+            refreshUserData(); // Refresh user data to reflect change globally
+        } catch (error) {
+            setSelectedCurrency(oldCurrency); // Revert on failure
+            toast({ title: "Erreur", description: "Impossible de changer la devise.", variant: "destructive" });
+        }
+    }
     
     const contactCount = userData?.contactCount || 0;
     const currentPlan = userData?.plan || 'free';
@@ -182,7 +199,7 @@ function PlanPageContent() {
                             </div>
                             
                             <div className="flex flex-col sm:flex-row items-center gap-2">
-                                <span className="text-sm font-medium whitespace-nowrap">Choisissez votre devise :</span>
+                                <span className="text-sm font-medium whitespace-nowrap">Votre devise :</span>
                                  {loadingCurrencies || !currencyData ? (
                                      <Skeleton className="h-10 w-full sm:w-48" />
                                  ) : (
@@ -200,7 +217,7 @@ function PlanPageContent() {
                                             <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                                             </Button>
                                         </PopoverTrigger>
-                                        <PopoverContent className="w-[300px] p-0">
+                                        <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
                                             <Command>
                                                 <CommandInput placeholder="Rechercher une devise..." />
                                                 <CommandList>
@@ -211,7 +228,10 @@ function PlanPageContent() {
                                                             key={currency.value}
                                                             value={currency.value}
                                                             onSelect={(currentValue) => {
-                                                                setSelectedCurrency(currentValue.toUpperCase() === selectedCurrency ? null : currentValue.toUpperCase())
+                                                                const newCurrency = currentValue.toUpperCase();
+                                                                if (newCurrency !== selectedCurrency) {
+                                                                    handleCurrencyChange(newCurrency);
+                                                                }
                                                                 setPopoverOpen(false)
                                                             }}
                                                             >
@@ -253,5 +273,3 @@ export default function PlanPage() {
         </HomeLayout>
     )
 }
-
-    

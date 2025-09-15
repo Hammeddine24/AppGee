@@ -31,7 +31,7 @@ function ShowCodeContent() {
     };
 
     const handleContinue = () => {
-        router.push('/home');
+        router.push('/select-currency');
     };
 
     return (
@@ -55,7 +55,7 @@ function ShowCodeContent() {
                     </p>
                 </CardContent>
                 <CardFooter>
-                    <Button className="w-full" onClick={handleContinue}>J'ai compris, accéder à l'accueil</Button>
+                    <Button className="w-full" onClick={handleContinue}>Continuer</Button>
                 </CardFooter>
             </Card>
         </div>

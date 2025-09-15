@@ -12,6 +12,7 @@ export type UserData = {
     donationCount: number;
     contactCount: number;
     connectionCode: string;
+    currency?: string;
 }
 
 export async function updateUserName(userId: string, newName: string): Promise<void> {
@@ -35,6 +36,17 @@ export async function updateUserName(userId: string, newName: string): Promise<v
         throw new Error("Failed to update user name.");
     }
 }
+
+export async function updateUserCurrency(userId: string, currency: string): Promise<void> {
+    const userRef = doc(db, 'users', userId);
+    try {
+        await updateDoc(userRef, { currency: currency });
+    } catch (error) {
+        console.error("Error updating user currency:", error);
+        throw new Error("Failed to update user currency.");
+    }
+}
+
 
 export async function getUserData(userId: string) {
     const userRef = doc(db, 'users', userId);
