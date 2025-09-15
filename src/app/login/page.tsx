@@ -65,8 +65,9 @@ function LoginPageContent() {
     try {
       const { connectionCode: generatedCode } = await createUser(signUpName, signUpEmail);
       if(generatedCode) {
-        // Redirect to the page that shows the code
-        router.push(`/show-code?code=${generatedCode}`);
+        // Store the code in sessionStorage instead of the URL
+        sessionStorage.setItem('connectionCode', generatedCode);
+        router.push('/show-code');
       } else {
          throw new Error("La création de l'utilisateur a échoué.");
       }

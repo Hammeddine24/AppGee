@@ -1,22 +1,41 @@
 
 "use client";
 
-import { useRouter, useSearchParams } from "next/navigation";
-import { Suspense } from "react";
+import { useRouter } from "next/navigation";
+import { Suspense, useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
-import { Copy } from "lucide-react";
+import { Copy, Loader2 } from "lucide-react";
 
 function ShowCodeContent() {
     const router = useRouter();
-    const searchParams = useSearchParams();
-    const code = searchParams.get('code');
     const { toast } = useToast();
+    const [code, setCode] = useState<string | null>(null);
+    const [isLoading, setIsLoading] = useState(true);
+
+    useEffect(() => {
+        // Retrieve the code from sessionStorage
+        const storedCode = sessionStorage.getItem('connectionCode');
+        if (storedCode) {
+            setCode(storedCode);
+            // Clean up the sessionStorage immediately after reading
+            sessionStorage.removeItem('connectionCode');
+        }
+        setIsLoading(false);
+    }, []);
+
+    if (isLoading) {
+        return (
+            <div className="flex items-center justify-center min-h-screen">
+                <Loader2 className="h-8 w-8 animate-spin" />
+            </div>
+        );
+    }
 
     if (!code) {
         return (
-            <div className="flex items-center justify-center min-h-screen">
+            <div className="flex items-center justify-center min-h-screen p-4 text-center">
                 <p>Code de connexion non trouvé. Veuillez vous réinscrire.</p>
             </div>
         );
@@ -65,7 +84,7 @@ function ShowCodeContent() {
 
 export default function ShowCodePage() {
     return (
-        <Suspense fallback={<div>Chargement...</div>}>
+        <Suspense fallback={<div className="flex items-center justify-center min-h-screen"><Loader2 className="h-8 w-8 animate-spin" /></div>}>
             <ShowCodeContent />
         </Suspense>
     )
