@@ -91,10 +91,10 @@ export default function LandingPage() {
                     </Card>
                      <Card>
                         <CardHeader>
-                            <CardTitle className="flex items-center gap-2"><Gift className="text-primary"/> 100% Gratuit</CardTitle>
+                            <CardTitle className="flex items-center gap-2"><Gift className="text-primary"/> Publication Gratuite</CardTitle>
                         </CardHeader>
                         <CardContent>
-                           Publier et recevoir des dons est et restera toujours gratuit.
+                           Publier vos dons est et restera toujours 100% gratuit. Pour contacter les donateurs, vos premiers contacts sont offerts.
                         </CardContent>
                     </Card>
                      <Card>
