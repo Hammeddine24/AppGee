@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { Leaf } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -26,10 +26,11 @@ function LoginPageContent() {
   const [signUpEmail, setSignUpEmail] = useState('');
   
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const isSigningUp = useRef(false);
 
-  // If user is already logged in, redirect to home page
+  // If user is already logged in, redirect to home page, unless they are signing up
   useEffect(() => {
-    if (!loading && user) {
+    if (!loading && user && !isSigningUp.current) {
       router.push('/home');
     }
   }, [user, loading, router]);
@@ -60,6 +61,7 @@ function LoginPageContent() {
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
+    isSigningUp.current = true;
     try {
       const { connectionCode: generatedCode } = await createUser(signUpName, signUpEmail);
       if(generatedCode) {
@@ -74,13 +76,14 @@ function LoginPageContent() {
         description: error.message || "Une erreur est survenue.",
         variant: "destructive",
       });
+       isSigningUp.current = false;
     } finally {
       setIsSubmitting(false);
     }
   };
 
   // Render a loading state or nothing while checking auth status
-  if (loading || user) {
+  if (loading || (user && !isSigningUp.current)) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <p>Chargement...</p>
